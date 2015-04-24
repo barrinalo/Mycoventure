@@ -22,6 +22,9 @@ public class Gameplay implements Screen, InputProcessor{
     Sprite ControlsRight;
     Sprite ControlsUse;
 
+    //Player
+    Player player;
+
     public Gameplay(Mycoventure ref) {
         GameReference = ref;
     }
@@ -35,12 +38,17 @@ public class Gameplay implements Screen, InputProcessor{
         ControlsLeft = new Sprite(GameReference.ResourceManager.get("ControlsLeft.png", Texture.class));
         ControlsRight = new Sprite(GameReference.ResourceManager.get("ControlsRight.png", Texture.class));
         ControlsUse = new Sprite(GameReference.ResourceManager.get("ControlsUse.png", Texture.class));
+
+        player = new Player(GameReference.ResourceManager);
+        player.setBounds(GameReference.cam.position.x, GameReference.cam.position.y, 0.1f * CAM_WIDTH, 0.1f * CAM_HEIGHT);
+        player.setOriginCenter();
     }
 
     @Override
     public void render(float delta) {
         GameReference.cam.update();
         GameReference.batch.setProjectionMatrix(GameReference.cam.combined);
+
         //Update controls position
         ControlsUp.setBounds(GameReference.cam.position.x - CAM_WIDTH / 2f + 0.125f * CAM_WIDTH, GameReference.cam.position.y - CAM_HEIGHT / 2f + 0.12f * CAM_HEIGHT, 0.1f * CAM_WIDTH, 0.1f * CAM_HEIGHT);
         ControlsDown.setBounds(GameReference.cam.position.x - CAM_WIDTH / 2f + 0.125f * CAM_WIDTH, GameReference.cam.position.y - CAM_HEIGHT / 2f + 0.01f * CAM_HEIGHT, 0.1f * CAM_WIDTH, 0.1f * CAM_HEIGHT);
