@@ -3,10 +3,13 @@ package com.mycoventure.game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.assets.loaders.resolvers.InternalFileHandleResolver;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.maps.tiled.TiledMap;
+import com.badlogic.gdx.maps.tiled.TmxMapLoader;
 
 /**
  * Created by david.chong on 2015/04/24.
@@ -25,6 +28,8 @@ public class LoadingScreen implements Screen {
         LoadingBackground.setBounds(0, 0, GameReference.DEFAULT_WIDTH, GameReference.DEFAULT_HEIGHT);
 
         //Load Game Resources
+        GameReference.ResourceManager.setLoader(TiledMap.class, new TmxMapLoader(new InternalFileHandleResolver()));
+        GameReference.ResourceManager.load("Mycofarm.tmx", TiledMap.class);
         GameReference.ResourceManager.load("StartScreen.png", Texture.class);
         GameReference.ResourceManager.load("ControlsUse.png", Texture.class);
         GameReference.ResourceManager.load("ControlsUp.png", Texture.class);
@@ -32,6 +37,8 @@ public class LoadingScreen implements Screen {
         GameReference.ResourceManager.load("ControlsLeft.png", Texture.class);
         GameReference.ResourceManager.load("ControlsRight.png", Texture.class);
         GameReference.ResourceManager.load("ControlsSettings.png", Texture.class);
+        GameReference.ResourceManager.load("Player.png", Texture.class);
+        
     }
 
     @Override
