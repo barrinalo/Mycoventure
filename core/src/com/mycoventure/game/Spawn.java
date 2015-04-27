@@ -8,6 +8,7 @@ public class Spawn {
     int Quantity;
     boolean Culture;
 
+    public Spawn(){};
     public Spawn(String Name, int Quantity, boolean Culture, String Description) {
         this.Name = Name;
         this.Quantity = Quantity;

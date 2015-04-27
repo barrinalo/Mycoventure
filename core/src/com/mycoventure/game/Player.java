@@ -65,20 +65,20 @@ public class Player extends CharacterEntity {
 
         return temp;
     }
-    public void update(float delta) {
+    public void update(float delta, int CellSize) {
         if(IsMoving) {
             switch(Dir) {
                 case LEFT:
-                    Move(-delta * MoveSpeed, 0, delta);
+                    Move(-delta * MoveSpeed * CellSize, 0, delta);
                     break;
                 case RIGHT:
-                    Move(delta * MoveSpeed, 0, delta);
+                    Move(delta * MoveSpeed * CellSize, 0, delta);
                     break;
                 case UP:
-                    Move(0, delta * MoveSpeed, delta);
+                    Move(0, delta * MoveSpeed * CellSize, delta);
                     break;
                 case DOWN:
-                    Move(0, -delta * MoveSpeed, delta);
+                    Move(0, -delta * MoveSpeed * CellSize, delta);
                     break;
             }
         }

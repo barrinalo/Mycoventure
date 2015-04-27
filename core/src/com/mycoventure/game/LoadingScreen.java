@@ -47,14 +47,22 @@ public class LoadingScreen implements Screen {
         GameReference.ResourceManager.load("ControlsInventory.png", Texture.class);
         GameReference.ResourceManager.load("ControlsCancel.png", Texture.class);
         GameReference.ResourceManager.load("Player.png", Texture.class);
+        GameReference.ResourceManager.load("Compost.png", Texture.class);
+        GameReference.ResourceManager.load("Culture.png", Texture.class);
+        GameReference.ResourceManager.load("Spawn.png", Texture.class);
 
         GameReference.ResourceManager.setLoader(BitmapFont.class, new FreetypeFontLoader(new InternalFileHandleResolver()));
         GameReference.ResourceManager.setLoader(FreeTypeFontGenerator.class, new FreeTypeFontGeneratorLoader(new InternalFileHandleResolver()));
         FreetypeFontLoader.FreeTypeFontLoaderParameter FontParams = new FreetypeFontLoader.FreeTypeFontLoaderParameter();
         FontParams.fontFileName = "ASMAN.TTF";
-        FontParams.fontParameters.size = 20;
-        FontParams.fontParameters.color = Color.RED;
-        GameReference.ResourceManager.load("InventoryFont", BitmapFont.class, FontParams);
+        FontParams.fontParameters.size = 24;
+        FontParams.fontParameters.color = Color.WHITE;
+        GameReference.ResourceManager.load("SmallFont", BitmapFont.class, FontParams);
+        FreetypeFontLoader.FreeTypeFontLoaderParameter FontParams2 = new FreetypeFontLoader.FreeTypeFontLoaderParameter();
+        FontParams2.fontFileName = "ASMAN.TTF";
+        FontParams2.fontParameters.size = 36;
+        FontParams2.fontParameters.color = Color.WHITE;
+        GameReference.ResourceManager.load("MediumFont", BitmapFont.class, FontParams2);
         
     }
 

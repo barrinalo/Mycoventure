@@ -11,20 +11,20 @@ import java.util.Vector;
  */
 public class AnimatedEntity extends Entity {
 
-   Vector<Animation> WalkSheets;
+   Vector<Animation> AnimationSheets;
     float AnimationRate;
     float StateTime;
     int numrow, numcol;
     public AnimatedEntity(float scale) {
         super(scale);
         StateTime = 0;
-        WalkSheets = new Vector<Animation>();
+        AnimationSheets = new Vector<Animation>();
     }
 
-    public void setWalkSheets(Texture t) {
-        TextureRegion[][] tmp = TextureRegion.split(t, (int)scale , (int)scale);
-        numrow = t.getHeight() / (int)scale;
-        numcol = t.getWidth() / (int)scale;
+    public void setAnimationSheets(Texture t, int CellSize) {
+        TextureRegion[][] tmp = TextureRegion.split(t, CellSize , CellSize);
+        numrow = t.getHeight() / CellSize;
+        numcol = t.getWidth() / CellSize;
         AnimationRate = 1.0f / (float) numcol;
 
         for(int i = 0; i < numrow; i++) {
@@ -32,7 +32,7 @@ public class AnimatedEntity extends Entity {
             for (int j = 0; j < numcol; j++) {
                 WalkFrames[j] = tmp[i][j];
             }
-            WalkSheets.add(new Animation(AnimationRate, WalkFrames));
+            AnimationSheets.add(new Animation(AnimationRate, WalkFrames));
         }
 
     }
@@ -40,13 +40,13 @@ public class AnimatedEntity extends Entity {
     public void Animate(float delta, int Index) {
         StateTime += delta;
         if(StateTime > numcol * AnimationRate) StateTime = 0;
-        tmo.setTextureRegion(WalkSheets.get(Index).getKeyFrame(StateTime));
+        tmo.setTextureRegion(AnimationSheets.get(Index).getKeyFrame(StateTime));
     }
 
     public void GetStatic(int Index) {
         StateTime = 0;
-        tmo.setTextureRegion(WalkSheets.get(Index).getKeyFrame(StateTime));
+        tmo.setTextureRegion(AnimationSheets.get(Index).getKeyFrame(StateTime));
     }
 
-    public void update(float delta){};
+    public void update(float delta, int CellSize){};
 }

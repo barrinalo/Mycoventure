@@ -3,8 +3,10 @@ package com.mycoventure.game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.maps.MapObject;
 import com.badlogic.gdx.maps.objects.RectangleMapObject;
@@ -12,8 +14,10 @@ import com.badlogic.gdx.maps.tiled.TiledMap;
 import com.badlogic.gdx.maps.tiled.TiledMapTileLayer;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.utils.Json;
 
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Vector;
@@ -23,10 +27,11 @@ import java.util.Vector;
  */
 public class Gameplay implements Screen, InputProcessor{
     static final float scale = 1f;
-    static final float ConvertToCell = 64f;
+    static final int CellSize = 64;
     static final int CAM_WIDTH = 640;
     static final int CAM_HEIGHT = 640;
     static TiledMap CurrentMap;
+    int tempx, tempy;
     static OrthogonalTiledMapRendererWithSprites MapRenderer;
     Mycoventure GameReference;
 
@@ -39,13 +44,16 @@ public class Gameplay implements Screen, InputProcessor{
     Sprite ControlsInventory;
     Sprite ControlsCancel;
 
-    //Inventory stuff
-    boolean Inventory;
-    Vector<InventoryEntry> InventoryList;
+    //Interfaces
+    String CurrentInterface;
+    HashMap<String, InterfaceTemplate> Interfaces;
 
     //Player and Game Data
     Player player;
     GameState CurrentState;
+    Vector<Entity>  ObjectsAndCharacters;
+    HashMap<String, MushroomReference> MushroomDatabase;
+
     public Gameplay(Mycoventure ref) {
         GameReference = ref;
     }
@@ -53,9 +61,12 @@ public class Gameplay implements Screen, InputProcessor{
     @Override
     public void show() {
         Gdx.input.setInputProcessor(this);
+        //Interfaces
+        CurrentInterface = "None";
+        Interfaces = new HashMap<String, InterfaceTemplate>();
+        Interfaces.put("Inventory", new InventoryInterface(this));
 
         //Set UI controls
-        Inventory = false;
         ControlsUp = new Sprite(GameReference.ResourceManager.get("ControlsUp.png", Texture.class));
         ControlsDown = new Sprite(GameReference.ResourceManager.get("ControlsDown.png", Texture.class));
         ControlsLeft = new Sprite(GameReference.ResourceManager.get("ControlsLeft.png", Texture.class));
@@ -64,23 +75,16 @@ public class Gameplay implements Screen, InputProcessor{
         ControlsInventory = new Sprite(GameReference.ResourceManager.get("ControlsInventory.png", Texture.class));
         ControlsCancel = new Sprite(GameReference.ResourceManager.get("ControlsCancel.png", Texture.class));
 
-        //Create Inventory
-        InventoryList = new Vector<InventoryEntry>();
+
 
         //Create Player
         player = new Player(scale);
-        player.setWalkSheets(GameReference.ResourceManager.get("Player.png", Texture.class));
-        for(int i = 0; i < 1; i++) {
-            Compost tmp = new Compost();
-            tmp.BulkPercentage = 50f;
-            tmp.SupplementPercentage = 50f;
-            tmp.Quantity = 1;
-            player.TypesOfCompost.add(tmp);
-        }
+        player.setAnimationSheets(GameReference.ResourceManager.get("Player.png", Texture.class), CellSize);
+
         //Begin loading saved data
         if(Gdx.files.isLocalStorageAvailable()) {
             if(Gdx.files.local("PlayerSave.myc").exists()) player.LoadFromSaveFile(new Json().fromJson(PlayerSave.class, Gdx.files.local("PlayerSave.myc").readString()));
-            else player.setPosition(15 * 64,5 * 64);
+            else player.setPosition(15 * CellSize,5 * CellSize);
             if(Gdx.files.local("GameState.myc").exists()) CurrentState = new Json().fromJson(GameState.class, Gdx.files.local("GameState.myc").readString());
         }
 
@@ -90,7 +94,23 @@ public class Gameplay implements Screen, InputProcessor{
         else {
             CurrentMap = GameReference.ResourceManager.get("Mycofarm.tmx", TiledMap.class); //Default starting location
         }
-
+        //Load Databases
+        MushroomDatabase = new HashMap<String, MushroomReference>();
+        String MushText[] = Gdx.files.internal("Mushrooms.csv").readString().split("\n");
+        for(int i = 1; i < MushText.length; i++) {
+            String tmp[] = MushText[i].split(",");
+            MushroomReference mref = new MushroomReference();
+            mref.Name = tmp[0];
+            mref.Examine = tmp[1];
+            mref.Group = tmp[2].split(" ");
+            mref.BaseYield = Integer.parseInt(tmp[3]);
+            mref.BaseSpeed = Integer.parseInt(tmp[4]);
+            mref.BaseHumidityPreference = Integer.parseInt(tmp[5]);
+            mref.BaseSupplementPreference = Integer.parseInt(tmp[6]);
+            mref.BaseEfficiency = Integer.parseInt(tmp[7]);
+            mref.BaseTemperatureTrigger = Integer.parseInt(tmp[8].trim());
+            MushroomDatabase.put(tmp[0], mref);
+        }
         //Set map
         MapRenderer = new OrthogonalTiledMapRendererWithSprites(CurrentMap, 1 / scale);
         //Populate map
@@ -102,7 +122,8 @@ public class Gameplay implements Screen, InputProcessor{
 
     @Override
     public void render(float delta) {
-        if (!Inventory) {
+
+        if (CurrentInterface.equals("None")) {
             //Check collisions with player
             if (player.IsMoving) {
                 if (CheckTerrainCollision("Unwalkable", player, delta)) player.Stop();
@@ -110,7 +131,7 @@ public class Gameplay implements Screen, InputProcessor{
                 else if (CheckExitEntrance(player, delta) != "")
                     ChangeMap(CheckExitEntrance(player, delta), CurrentMap.getProperties().get("Name").toString());
             }
-            player.update(delta * ConvertToCell);
+            player.update(delta, CellSize);
 
             //Update controls position
             GameReference.cam.position.set(player.getX(), player.getY(), 0);
@@ -144,15 +165,8 @@ public class Gameplay implements Screen, InputProcessor{
             GameReference.batch.end();
         }
         else {
-            Gdx.gl.glClearColor(204/255f, 0, 1, 1);
-            Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
-            GameReference.batch.setProjectionMatrix(GameReference.cam.combined);
-            GameReference.cam.update();
-
-            GameReference.batch.begin();
-            for(int i = 0; i < InventoryList.size(); i++) InventoryList.get(i).draw(GameReference.batch);
-            ControlsCancel.draw(GameReference.batch);
-            GameReference.batch.end();
+            Interfaces.get(CurrentInterface).Update(delta);
+            Interfaces.get(CurrentInterface).draw();
         }
     }
 
@@ -221,71 +235,52 @@ public class Gameplay implements Screen, InputProcessor{
 
     @Override
     public boolean touchDown(int screenX, int screenY, int pointer, int button) {
-        Vector3 WorldCoordinates = GameReference.cam.unproject(new Vector3(screenX,screenY,0));
-
-        if(ControlsInventory.getBoundingRectangle().contains(WorldCoordinates.x,WorldCoordinates.y) && !Inventory) {
-            GameReference.cam.setToOrtho(false, CAM_WIDTH, CAM_HEIGHT);
-            GameReference.cam.position.x = 5;
-            GameReference.cam.position.y = 0;
-            Inventory = true;
-            ControlsCancel.setBounds(GameReference.cam.position.x - CAM_WIDTH / 2f + 0.89f * CAM_WIDTH, GameReference.cam.position.y - CAM_HEIGHT / 2f + 0.89f * CAM_HEIGHT, 0.1f * CAM_WIDTH, 0.1f * CAM_HEIGHT);
-
-            int pos = -1;
-            for(Compost c : player.TypesOfCompost) {
-                InventoryList.add(new InventoryEntry(GameReference.ResourceManager.get("ControlsCancel.png", Texture.class), "Compost",
-                        "Bulk - " + Float.toString(c.BulkPercentage) + ", Supplement - "
-                                + Float.toString(c.SupplementPercentage), c.Quantity, GameReference.ResourceManager));
-                InventoryList.lastElement().Format(pos);
-                pos--;
-            }
-            for(Spawn s : player.SpawnAndCultures) {
-                if(s.Culture) InventoryList.add(new InventoryEntry(GameReference.ResourceManager.get("Culture.png", Texture.class), s.Name, s.Description, s.Quantity, GameReference.ResourceManager));
-                else InventoryList.add(new InventoryEntry(GameReference.ResourceManager.get("Spawn.png", Texture.class), s.Name, s.Description, s.Quantity, GameReference.ResourceManager));
-                InventoryList.lastElement().Format(pos);
-                pos--;
-            }
-            Iterator it = player.Mushrooms.entrySet().iterator();
-            while(it.hasNext()) {
-                Map.Entry pair = (Map.Entry)it.next();
-                InventoryList.add(new InventoryEntry(GameReference.ResourceManager.get(pair.getKey() + ".png", Texture.class), pair.getKey().toString(), "", Integer.parseInt(pair.getValue().toString()), GameReference.ResourceManager));
-                it.remove();
-                InventoryList.lastElement().Format(pos);
-                pos--;
+        Vector3 WorldCoordinates = GameReference.cam.unproject(new Vector3(screenX, screenY, 0));
+        if(CurrentInterface.equals("None")) {
+            if (ControlsInventory.getBoundingRectangle().contains(WorldCoordinates.x, WorldCoordinates.y)) {
+                Interfaces.get("Inventory").Show();
             }
         }
-        else if(ControlsCancel.getBoundingRectangle().contains(WorldCoordinates.x,WorldCoordinates.y) && Inventory) {
-            Inventory = false;
-            InventoryList.clear();
+        else {
+            Interfaces.get(CurrentInterface).touchDown(screenX, screenY, button);
         }
-
         return false;
     }
 
     @Override
     public boolean touchUp(int screenX, int screenY, int pointer, int button) {
-        if(player.IsMoving) player.Stop();
-
+        if(CurrentInterface.equals("None")) {
+            if (player.IsMoving) player.Stop();
+        }
+        else {
+            Interfaces.get(CurrentInterface).touchUp(screenX, screenY, button);
+        }
         return false;
     }
 
     @Override
     public boolean touchDragged(int screenX, int screenY, int pointer) {
-        Vector3 WorldCoordinates = GameReference.cam.unproject(new Vector3(screenX,screenY,0));
-        if(ControlsUp.getBoundingRectangle().contains(WorldCoordinates.x,WorldCoordinates.y)) {
-            player.IsMoving = true;
-            player.Dir = CharacterEntity.UP;
+        if(CurrentInterface.equals("None")) {
+            Vector3 WorldCoordinates = GameReference.cam.unproject(new Vector3(screenX, screenY, 0));
+            if (ControlsUp.getBoundingRectangle().contains(WorldCoordinates.x, WorldCoordinates.y)) {
+                player.IsMoving = true;
+                player.Dir = CharacterEntity.UP;
+            }
+            else if (ControlsDown.getBoundingRectangle().contains(WorldCoordinates.x, WorldCoordinates.y)) {
+                player.IsMoving = true;
+                player.Dir = CharacterEntity.DOWN;
+            }
+            else if (ControlsRight.getBoundingRectangle().contains(WorldCoordinates.x, WorldCoordinates.y)) {
+                player.IsMoving = true;
+                player.Dir = CharacterEntity.RIGHT;
+            }
+            else if (ControlsLeft.getBoundingRectangle().contains(WorldCoordinates.x, WorldCoordinates.y)) {
+                player.IsMoving = true;
+                player.Dir = CharacterEntity.LEFT;
+            }
         }
-        if(ControlsDown.getBoundingRectangle().contains(WorldCoordinates.x,WorldCoordinates.y)) {
-            player.IsMoving = true;
-            player.Dir = CharacterEntity.DOWN;
-        }
-        if(ControlsRight.getBoundingRectangle().contains(WorldCoordinates.x,WorldCoordinates.y)) {
-            player.IsMoving = true;
-            player.Dir = CharacterEntity.RIGHT;
-        }
-        if(ControlsLeft.getBoundingRectangle().contains(WorldCoordinates.x,WorldCoordinates.y)) {
-            player.IsMoving = true;
-            player.Dir = CharacterEntity.LEFT;
+        else {
+            Interfaces.get(CurrentInterface).touchDragged(screenX, screenY, pointer);
         }
         return false;
     }
@@ -322,10 +317,10 @@ public class Gameplay implements Screen, InputProcessor{
                 Rectangle r = new Rectangle(rect.getRectangle());
                 float xpos = r.x;
                 float ypos = r.y;
-                if(player.Dir == CharacterEntity.LEFT) xpos -= 1 * ConvertToCell;
-                else if(player.Dir == CharacterEntity.RIGHT) xpos += 1 * ConvertToCell;
-                else if(player.Dir == CharacterEntity.DOWN) ypos -= 1 * ConvertToCell;
-                else if(player.Dir == CharacterEntity.UP) ypos += 1 * ConvertToCell;
+                if(player.Dir == CharacterEntity.LEFT) xpos -= 1 * CellSize;
+                else if(player.Dir == CharacterEntity.RIGHT) xpos += 1 * CellSize;
+                else if(player.Dir == CharacterEntity.DOWN) ypos -= 1 * CellSize;
+                else if(player.Dir == CharacterEntity.UP) ypos += 1 * CellSize;
                 player.setPosition(xpos, ypos);
             }
         }
@@ -340,16 +335,16 @@ public class Gameplay implements Screen, InputProcessor{
         Rectangle EntityRect = new Rectangle(entity.getBoundingRectangle());
         switch(entity.Dir) {
             case CharacterEntity.LEFT:
-                EntityRect.x -= (delta * entity.MoveSpeed * ConvertToCell);
+                EntityRect.x -= (delta * entity.MoveSpeed * CellSize);
                 break;
             case CharacterEntity.RIGHT:
-                EntityRect.x += (delta * entity.MoveSpeed * ConvertToCell);
+                EntityRect.x += (delta * entity.MoveSpeed * CellSize);
                 break;
             case CharacterEntity.UP:
-                EntityRect.y += (delta * entity.MoveSpeed * ConvertToCell);
+                EntityRect.y += (delta * entity.MoveSpeed * CellSize);
                 break;
             case CharacterEntity.DOWN:
-                EntityRect.y -= (delta * entity.MoveSpeed * ConvertToCell);
+                EntityRect.y -= (delta * entity.MoveSpeed * CellSize);
                 break;
         }
         for (MapObject tmp : CurrentMap.getLayers().get("Exits And Entrances").getObjects()) {
@@ -370,16 +365,16 @@ public class Gameplay implements Screen, InputProcessor{
         Rectangle EntityRect = new Rectangle(entity.getBoundingRectangle());
         switch(entity.Dir) {
             case CharacterEntity.LEFT:
-                EntityRect.x -= (delta * entity.MoveSpeed * ConvertToCell);
+                EntityRect.x -= (delta * entity.MoveSpeed * CellSize);
                 break;
             case CharacterEntity.RIGHT:
-                EntityRect.x += (delta * entity.MoveSpeed * ConvertToCell);
+                EntityRect.x += (delta * entity.MoveSpeed * CellSize);
                 break;
             case CharacterEntity.UP:
-                EntityRect.y += (delta * entity.MoveSpeed * ConvertToCell);
+                EntityRect.y += (delta * entity.MoveSpeed * CellSize);
                 break;
             case CharacterEntity.DOWN:
-                EntityRect.y -= (delta * entity.MoveSpeed * ConvertToCell);
+                EntityRect.y -= (delta * entity.MoveSpeed * CellSize);
                 break;
         }
         for (MapObject tmp : CurrentMap.getLayers().get("Objects").getObjects()) {
@@ -401,35 +396,52 @@ public class Gameplay implements Screen, InputProcessor{
         TiledMapTileLayer t = (TiledMapTileLayer)CurrentMap.getLayers().get("Terrain");
         switch(entity.Dir) {
             case CharacterEntity.LEFT:
-                EntityRect.x -= (delta * entity.MoveSpeed * ConvertToCell);
+                EntityRect.x -= (delta * entity.MoveSpeed * CellSize);
                 if(EntityRect.x > 0) {
-                    if (t.getCell((int) Math.floor(EntityRect.x / ConvertToCell), (int) Math.floor(EntityRect.y / ConvertToCell)).getTile().getProperties().containsKey(TileProperty))WillCollide = true;
+                    if (t.getCell((int) Math.floor(EntityRect.x / CellSize), (int) Math.floor(EntityRect.y / CellSize)).getTile().getProperties().containsKey(TileProperty))WillCollide = true;
                 }
                 else WillCollide = true;
                 break;
             case CharacterEntity.RIGHT:
-                EntityRect.x += (delta * entity.MoveSpeed * ConvertToCell);
-                if(EntityRect.x + EntityRect.width < CurrentMap.getProperties().get("width", Integer.class) * ConvertToCell) {
-                    if (t.getCell((int) Math.floor((EntityRect.x + EntityRect.width) / ConvertToCell), (int) Math.floor(EntityRect.y / ConvertToCell)).getTile().getProperties().containsKey(TileProperty))WillCollide = true;
+                EntityRect.x += (delta * entity.MoveSpeed * CellSize);
+                if(EntityRect.x + EntityRect.width < CurrentMap.getProperties().get("width", Integer.class) * CellSize) {
+                    if (t.getCell((int) Math.floor((EntityRect.x + EntityRect.width) / CellSize), (int) Math.floor(EntityRect.y / CellSize)).getTile().getProperties().containsKey(TileProperty))WillCollide = true;
                 }
                 else WillCollide = true;
                 break;
             case CharacterEntity.UP:
-                EntityRect.y += (delta * entity.MoveSpeed * ConvertToCell);
-                if(EntityRect.y + EntityRect.height < CurrentMap.getProperties().get("height", Integer.class) * ConvertToCell) {
-                    if (t.getCell((int) Math.floor(EntityRect.x / ConvertToCell), (int) Math.floor((EntityRect.y + EntityRect.height) / ConvertToCell)).getTile().getProperties().containsKey(TileProperty))WillCollide = true;
+                EntityRect.y += (delta * entity.MoveSpeed * CellSize);
+                if(EntityRect.y + EntityRect.height < CurrentMap.getProperties().get("height", Integer.class) * CellSize) {
+                    if (t.getCell((int) Math.floor(EntityRect.x / CellSize), (int) Math.floor((EntityRect.y + EntityRect.height) / CellSize)).getTile().getProperties().containsKey(TileProperty))WillCollide = true;
                 }
                 else WillCollide = true;
                 break;
             case CharacterEntity.DOWN:
-                EntityRect.y -= (delta * entity.MoveSpeed * ConvertToCell);
+                EntityRect.y -= (delta * entity.MoveSpeed * CellSize);
                 if(EntityRect.y > 0) {
-                    if (t.getCell((int) Math.floor(EntityRect.x / ConvertToCell), (int) Math.floor(EntityRect.y / ConvertToCell)).getTile().getProperties().containsKey(TileProperty))WillCollide = true;
+                    if (t.getCell((int) Math.floor(EntityRect.x / CellSize), (int) Math.floor(EntityRect.y / CellSize)).getTile().getProperties().containsKey(TileProperty))WillCollide = true;
                 }
                 else WillCollide = true;
                 break;
         }
         return WillCollide;
+    }
+
+    public void PopulateMap() {
+       for(MapObject tmp : CurrentMap.getLayers().get("Spawn Points").getObjects()) {
+           if(tmp.getProperties().get("Type").toString().equals("MushroomSource")) {
+               RectangleMapObject rect = (RectangleMapObject) tmp;
+               Rectangle r = rect.getRectangle();
+               float xpos = r.getX() + r.getWidth() * (float)Math.random();
+               float ypos = r.getY() + r.getHeight() * (float)Math.random();
+               boolean intersect = false;
+               Rectangle temprect = new Rectangle();
+               temprect.x = xpos;
+               temprect.y = ypos;
+               temprect.width = CellSize;
+               temprect.height
+           }
+       }
     }
 }
 

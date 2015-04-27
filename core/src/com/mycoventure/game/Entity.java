@@ -9,12 +9,14 @@ import com.badlogic.gdx.maps.objects.TextureMapObject;
 public class Entity extends Sprite{
     TextureMapObject tmo;
     float scale;
-
+    boolean Blocking, IsMovable;
     public Entity(float scale) {
         tmo = new TextureMapObject();
         this.scale = scale;
         setSize(64 / scale,64 / scale);
         setOriginCenter();
+        Blocking = true;
+        IsMovable = false;
     }
 
     public void Reposition(float xdist, float ydist) {
