@@ -4,10 +4,15 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.assets.loaders.resolvers.InternalFileHandleResolver;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
+import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGeneratorLoader;
+import com.badlogic.gdx.graphics.g2d.freetype.FreetypeFontLoader;
 import com.badlogic.gdx.maps.tiled.TiledMap;
 import com.badlogic.gdx.maps.tiled.TmxMapLoader;
 
@@ -30,6 +35,8 @@ public class LoadingScreen implements Screen {
         //Load Game Resources
         GameReference.ResourceManager.setLoader(TiledMap.class, new TmxMapLoader(new InternalFileHandleResolver()));
         GameReference.ResourceManager.load("Mycofarm.tmx", TiledMap.class);
+        GameReference.ResourceManager.load("PathToTown.tmx", TiledMap.class);
+
         GameReference.ResourceManager.load("StartScreen.png", Texture.class);
         GameReference.ResourceManager.load("ControlsUse.png", Texture.class);
         GameReference.ResourceManager.load("ControlsUp.png", Texture.class);
@@ -37,7 +44,17 @@ public class LoadingScreen implements Screen {
         GameReference.ResourceManager.load("ControlsLeft.png", Texture.class);
         GameReference.ResourceManager.load("ControlsRight.png", Texture.class);
         GameReference.ResourceManager.load("ControlsSettings.png", Texture.class);
+        GameReference.ResourceManager.load("ControlsInventory.png", Texture.class);
+        GameReference.ResourceManager.load("ControlsCancel.png", Texture.class);
         GameReference.ResourceManager.load("Player.png", Texture.class);
+
+        GameReference.ResourceManager.setLoader(BitmapFont.class, new FreetypeFontLoader(new InternalFileHandleResolver()));
+        GameReference.ResourceManager.setLoader(FreeTypeFontGenerator.class, new FreeTypeFontGeneratorLoader(new InternalFileHandleResolver()));
+        FreetypeFontLoader.FreeTypeFontLoaderParameter FontParams = new FreetypeFontLoader.FreeTypeFontLoaderParameter();
+        FontParams.fontFileName = "ASMAN.TTF";
+        FontParams.fontParameters.size = 20;
+        FontParams.fontParameters.color = Color.RED;
+        GameReference.ResourceManager.load("InventoryFont", BitmapFont.class, FontParams);
         
     }
 

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.0" orientation="orthogonal" renderorder="right-down" width="30" height="30" tilewidth="64" tileheight="64" nextobjectid="17">
+<map version="1.0" orientation="orthogonal" renderorder="right-down" width="30" height="20" tilewidth="64" tileheight="64" nextobjectid="15">
  <properties>
-  <property name="Name" value="Mycofarm"/>
+  <property name="Name" value="PathToTown"/>
  </properties>
  <tileset firstgid="1" name="Terrain" tilewidth="64" tileheight="64">
   <image source="Terrain.png" width="512" height="512"/>
@@ -54,43 +54,30 @@
   <tile id="62" terrain="1,0,1,1"/>
   <tile id="63" terrain="0,1,1,1"/>
  </tileset>
- <tileset firstgid="188" name="Buildings" tilewidth="64" tileheight="64">
-  <image source="Buildings.png" width="512" height="512"/>
- </tileset>
- <layer name="Terrain" width="30" height="30">
+ <layer name="Terrain" width="30" height="20">
   <data encoding="base64" compression="zlib">
-   eJztzaERwCAQBdFfA0FBmkjA0C2lgrw5xwwKVjy1YpukBgAAcLFvAd99338qUq+Hfh8jum9wfec3G6/7Jtf58h1pvMVt
+   eJwzZGBgMKQhNgJiYyA2obE9o/YOLXu1gFibAmxHpr0w91KKybXXFIitKcA2dIqfkZYeR+0dtXfU3lF7qW0vAMmZc74=
   </data>
  </layer>
- <layer name="Background" width="30" height="30">
+ <layer name="Background" width="30" height="20">
   <data encoding="base64" compression="zlib">
-   eJztzbERABAUBUH9N4sImVfFJ9idufhaAwDgBz2NNIu/K+10ir/AexcqCAW5
+   eJztwTEBAAAAwqD1T20JT6AAAHgaCWAAAQ==
   </data>
  </layer>
- <objectgroup name="Objects">
-  <object id="9" x="1029" y="1307" width="41" height="99"/>
-  <object id="14" x="914" y="1306.5" width="40" height="101"/>
-  <object id="15" x="954" y="1306.5" width="75" height="36"/>
- </objectgroup>
+ <objectgroup name="Objects"/>
  <objectgroup name="Exits And Entrances">
-  <object id="11" x="961" y="1889" width="61" height="31">
+  <object id="13" x="1600" y="0" width="63" height="30">
    <properties>
-    <property name="From" value="PathToTown"/>
-    <property name="To" value="PathToTown"/>
-   </properties>
-  </object>
-  <object id="16" x="956" y="1343" width="72" height="32">
-   <properties>
-    <property name="From" value="Lab"/>
-    <property name="To" value="Lab"/>
+    <property name="From" value="Mycofarm"/>
+    <property name="To" value="Mycofarm"/>
    </properties>
   </object>
  </objectgroup>
  <objectgroup name="Spawn Points"/>
  <objectgroup name="Sprites"/>
- <layer name="Foreground" width="30" height="30" opacity="0.9">
+ <layer name="Foreground" width="30" height="20" opacity="0.9">
   <data encoding="base64" compression="zlib">
-   eJztzrENACAMBLHsvyhki3zJAhGNLV1/VQAAvE66qX+PACwbcGsCuQ==
+   eJztwTEBAAAAwqD1T20JT6AAAHgaCWAAAQ==
   </data>
  </layer>
 </map>
