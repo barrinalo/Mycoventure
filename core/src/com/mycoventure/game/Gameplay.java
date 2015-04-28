@@ -8,6 +8,7 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.Sprite;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.maps.MapObject;
 import com.badlogic.gdx.maps.objects.RectangleMapObject;
 import com.badlogic.gdx.maps.tiled.TiledMap;
@@ -15,8 +16,10 @@ import com.badlogic.gdx.maps.tiled.TiledMapTileLayer;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
+import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.Json;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -31,6 +34,13 @@ public class Gameplay implements Screen, InputProcessor{
     static final int CAM_WIDTH = 640;
     static final int CAM_HEIGHT = 640;
     static TiledMap CurrentMap;
+    public static final float DROUGHT = 0.1f;
+    public static final float NORMAL = 0.5f;
+    public static final float RAINING = 0.6f;
+    public static final float AFTER_RAIN = 0.9f;
+
+    public static final float ONE_DAY = 300;
+    public static final float WORLD_UPDATE_INTERVAL = 60;
     int tempx, tempy;
     static OrthogonalTiledMapRendererWithSprites MapRenderer;
     Mycoventure GameReference;
@@ -43,8 +53,10 @@ public class Gameplay implements Screen, InputProcessor{
     Sprite ControlsUse;
     Sprite ControlsInventory;
     Sprite ControlsCancel;
+    Sprite ControlsExaminable;
 
     //Interfaces
+    Label ExamineNote;
     String CurrentInterface;
     HashMap<String, InterfaceTemplate> Interfaces;
 
@@ -53,6 +65,7 @@ public class Gameplay implements Screen, InputProcessor{
     GameState CurrentState;
     Vector<Entity>  ObjectsAndCharacters;
     HashMap<String, MushroomReference> MushroomDatabase;
+    ShapeRenderer s;
 
     public Gameplay(Mycoventure ref) {
         GameReference = ref;
@@ -60,11 +73,16 @@ public class Gameplay implements Screen, InputProcessor{
 
     @Override
     public void show() {
+        s = new ShapeRenderer();
         Gdx.input.setInputProcessor(this);
         //Interfaces
         CurrentInterface = "None";
         Interfaces = new HashMap<String, InterfaceTemplate>();
         Interfaces.put("Inventory", new InventoryInterface(this));
+        ExamineNote = new Label("", new Label.LabelStyle(GameReference.ResourceManager.get("SmallFont", BitmapFont.class), Color.RED));
+        ExamineNote.setWrap(true);
+        ExamineNote.setWidth(CAM_WIDTH * 0.5f);
+        ExamineNote.setAlignment(Align.bottom);
 
         //Set UI controls
         ControlsUp = new Sprite(GameReference.ResourceManager.get("ControlsUp.png", Texture.class));
@@ -74,12 +92,12 @@ public class Gameplay implements Screen, InputProcessor{
         ControlsUse = new Sprite(GameReference.ResourceManager.get("ControlsUse.png", Texture.class));
         ControlsInventory = new Sprite(GameReference.ResourceManager.get("ControlsInventory.png", Texture.class));
         ControlsCancel = new Sprite(GameReference.ResourceManager.get("ControlsCancel.png", Texture.class));
-
-
+        ControlsExaminable = new Sprite(GameReference.ResourceManager.get("ControlsExaminable.png", Texture.class));
 
         //Create Player
         player = new Player(scale);
         player.setAnimationSheets(GameReference.ResourceManager.get("Player.png", Texture.class), CellSize);
+        player.SetVisionWhenLookingUp(CellSize, CellSize / 4);
 
         //Begin loading saved data
         if(Gdx.files.isLocalStorageAvailable()) {
@@ -93,7 +111,17 @@ public class Gameplay implements Screen, InputProcessor{
         }
         else {
             CurrentMap = GameReference.ResourceManager.get("Mycofarm.tmx", TiledMap.class); //Default starting location
+            //Set world parameters default
+            CurrentState = new GameState();
+            CurrentState.CurrentMap = "Mycofarm.tmx";
+            CurrentState.CurrentTime = 0;
+            CurrentState.LastUpdate = 0;
+            CurrentState.MushroomSpawnChance = NORMAL;
         }
+
+        //Prepare holder for sprites
+        ObjectsAndCharacters = new Vector<Entity>();
+
         //Load Databases
         MushroomDatabase = new HashMap<String, MushroomReference>();
         String MushText[] = Gdx.files.internal("Mushrooms.csv").readString().split("\n");
@@ -103,12 +131,13 @@ public class Gameplay implements Screen, InputProcessor{
             mref.Name = tmp[0];
             mref.Examine = tmp[1];
             mref.Group = tmp[2].split(" ");
-            mref.BaseYield = Integer.parseInt(tmp[3]);
-            mref.BaseSpeed = Integer.parseInt(tmp[4]);
-            mref.BaseHumidityPreference = Integer.parseInt(tmp[5]);
-            mref.BaseSupplementPreference = Integer.parseInt(tmp[6]);
-            mref.BaseEfficiency = Integer.parseInt(tmp[7]);
+            mref.BaseYield = Integer.parseInt(tmp[3].trim());
+            mref.BaseSpeed = Integer.parseInt(tmp[4].trim());
+            mref.BaseHumidityPreference = Integer.parseInt(tmp[5].trim());
+            mref.BaseSupplementPreference = Integer.parseInt(tmp[6].trim());
+            mref.BaseEfficiency = Integer.parseInt(tmp[7].trim());
             mref.BaseTemperatureTrigger = Integer.parseInt(tmp[8].trim());
+            mref.Rarity = Integer.parseInt(tmp[9].trim());
             MushroomDatabase.put(tmp[0], mref);
         }
         //Set map
@@ -124,23 +153,31 @@ public class Gameplay implements Screen, InputProcessor{
     public void render(float delta) {
 
         if (CurrentInterface.equals("None")) {
+            UpdateWorld(delta);
+
+            //Update Objects and Characters
+            for(Entity e : ObjectsAndCharacters) {
+                if(e instanceof MushroomSource) {
+                    MushroomSource m = (MushroomSource) e;
+                    m.update(delta, CellSize);
+                    if(m.Yield == 0 && m.SubstrateRemaining == 0) {
+                        CurrentMap.getLayers().get("Sprites").getObjects().remove(m.tmo);
+                        ObjectsAndCharacters.remove(e);
+                    }
+                }
+            }
             //Check collisions with player
             if (player.IsMoving) {
                 if (CheckTerrainCollision("Unwalkable", player, delta)) player.Stop();
                 else if (CheckObjectCollision(player, delta)) player.Stop();
+                else if(CheckSpriteCollision(player, delta)) player.Stop();
                 else if (CheckExitEntrance(player, delta) != "")
                     ChangeMap(CheckExitEntrance(player, delta), CurrentMap.getProperties().get("Name").toString());
             }
             player.update(delta, CellSize);
 
             //Update controls position
-            GameReference.cam.position.set(player.getX(), player.getY(), 0);
-            ControlsUp.setBounds(GameReference.cam.position.x - CAM_WIDTH / 2f + 0.125f * CAM_WIDTH, GameReference.cam.position.y - CAM_HEIGHT / 2f + 0.12f * CAM_HEIGHT, 0.1f * CAM_WIDTH, 0.1f * CAM_HEIGHT);
-            ControlsDown.setBounds(GameReference.cam.position.x - CAM_WIDTH / 2f + 0.125f * CAM_WIDTH, GameReference.cam.position.y - CAM_HEIGHT / 2f + 0.01f * CAM_HEIGHT, 0.1f * CAM_WIDTH, 0.1f * CAM_HEIGHT);
-            ControlsLeft.setBounds(GameReference.cam.position.x - CAM_WIDTH / 2f + 0.01f * CAM_WIDTH, GameReference.cam.position.y - CAM_HEIGHT / 2f + 0.06f * CAM_HEIGHT, 0.1f * CAM_WIDTH, 0.1f * CAM_HEIGHT);
-            ControlsRight.setBounds(GameReference.cam.position.x - CAM_WIDTH / 2f + 0.23f * CAM_WIDTH, GameReference.cam.position.y - CAM_HEIGHT / 2f + 0.06f * CAM_HEIGHT, 0.1f * CAM_WIDTH, 0.1f * CAM_HEIGHT);
-            ControlsUse.setBounds(GameReference.cam.position.x - CAM_WIDTH / 2f + 0.89f * CAM_WIDTH, GameReference.cam.position.y - CAM_HEIGHT / 2f + 0.06f * CAM_HEIGHT, 0.1f * CAM_WIDTH, 0.1f * CAM_HEIGHT);
-            ControlsInventory.setBounds(GameReference.cam.position.x - CAM_WIDTH / 2f + 0.89f * CAM_WIDTH, GameReference.cam.position.y - CAM_HEIGHT / 2f + 0.89f * CAM_HEIGHT, 0.1f * CAM_WIDTH, 0.1f * CAM_HEIGHT);
+            UpdateControls(delta);
 
             //Start drawing
             Gdx.gl.glClearColor(0, 0, 0, 1);
@@ -152,6 +189,16 @@ public class Gameplay implements Screen, InputProcessor{
             MapRenderer.setView(GameReference.cam);
             MapRenderer.render();
 
+            Gdx.gl.glEnable(GL20.GL_BLEND);
+            Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
+            //Draw translucent rect for ambience and night day
+            s.setProjectionMatrix(GameReference.cam.combined);
+            s.begin(ShapeRenderer.ShapeType.Filled);
+            s.setColor(new Color(0,0,0,0.75f * (float)Math.sin((double)(CurrentState.CurrentTime / 300) * Math.PI)));
+            s.rect(GameReference.cam.position.x - CAM_WIDTH / 2f, GameReference.cam.position.y - CAM_HEIGHT / 2f, CAM_WIDTH, CAM_HEIGHT );
+            s.end();
+            Gdx.gl.glDisable(GL20.GL_BLEND);
+
             //Draw non-map stuff
             GameReference.batch.setProjectionMatrix(GameReference.cam.combined);
 
@@ -162,6 +209,8 @@ public class Gameplay implements Screen, InputProcessor{
             ControlsRight.draw(GameReference.batch);
             ControlsUse.draw(GameReference.batch);
             ControlsInventory.draw(GameReference.batch);
+            ControlsExaminable.draw(GameReference.batch);
+            ExamineNote.draw(GameReference.batch, 1);
             GameReference.batch.end();
         }
         else {
@@ -193,10 +242,6 @@ public class Gameplay implements Screen, InputProcessor{
         Gdx.input.setInputProcessor(null);
         if(Gdx.files.isLocalStorageAvailable()) {
             Json Serializer = new Json();
-
-            //Begin packing game data for saving
-            CurrentState = new GameState();
-            CurrentState.CurrentMap = CurrentMap.getProperties().get("Name").toString() + ".tmx";
             //Save game state and player data
             Gdx.files.local("PlayerSave.myc").writeString(Serializer.toJson(player.ExportData()),false);
             Gdx.files.local("GameState.myc").writeString(new Json().toJson(CurrentState), false);
@@ -236,9 +281,27 @@ public class Gameplay implements Screen, InputProcessor{
     @Override
     public boolean touchDown(int screenX, int screenY, int pointer, int button) {
         Vector3 WorldCoordinates = GameReference.cam.unproject(new Vector3(screenX, screenY, 0));
+        ExamineNote.setText(""); // Clear examine upon some other action.
         if(CurrentInterface.equals("None")) {
             if (ControlsInventory.getBoundingRectangle().contains(WorldCoordinates.x, WorldCoordinates.y)) {
                 Interfaces.get("Inventory").Show();
+            }
+            else if(ControlsUse.getBoundingRectangle().contains(WorldCoordinates.x, WorldCoordinates.y)) {
+                for(Entity e : ObjectsAndCharacters) {
+                    if(e instanceof Collectible && e.getBoundingRectangle().overlaps(player.Vision)) {
+                        Collectible collectible = (Collectible)e;
+                        collectible.Collect(player);
+                    }
+                }
+            }
+            else if(ControlsExaminable.getBoundingRectangle().contains(WorldCoordinates.x, WorldCoordinates.y)) {
+                for(Entity e : ObjectsAndCharacters) {
+                    if(e instanceof Examinable && e.getBoundingRectangle().overlaps(player.Vision)) {
+                        Examinable examinable = (Examinable)e;
+                        ExamineNote.setText(examinable.Examine());
+                        ExamineNote.setPosition(player.getX() - CAM_WIDTH / 4 + player.getWidth() / 2, player.getY() + player.getHeight());
+                    }
+                }
             }
         }
         else {
@@ -306,8 +369,14 @@ public class Gameplay implements Screen, InputProcessor{
      */
 
     public void ChangeMap(String MapName, String LastMap) {
+        //Clear Objects and Sprites and Map
+        for(Entity e : ObjectsAndCharacters) CurrentMap.getLayers().get("Sprites").getObjects().remove(e.tmo);
+        ObjectsAndCharacters.clear();
         CurrentMap.dispose();
+
+        //Change to new map
         CurrentMap = GameReference.ResourceManager.get(MapName + ".tmx", TiledMap.class);
+        CurrentState.CurrentMap = MapName + ".tmx";
 
         //Reposition Player
         CurrentMap.getLayers().get("Sprites").getObjects().add(player.tmo);
@@ -315,15 +384,34 @@ public class Gameplay implements Screen, InputProcessor{
             if(tmp.getProperties().get("From").toString().equals(LastMap)) {
                 RectangleMapObject rect = (RectangleMapObject)tmp;
                 Rectangle r = new Rectangle(rect.getRectangle());
-                float xpos = r.x;
-                float ypos = r.y;
-                if(player.Dir == CharacterEntity.LEFT) xpos -= 1 * CellSize;
-                else if(player.Dir == CharacterEntity.RIGHT) xpos += 1 * CellSize;
-                else if(player.Dir == CharacterEntity.DOWN) ypos -= 1 * CellSize;
-                else if(player.Dir == CharacterEntity.UP) ypos += 1 * CellSize;
+                String dir = rect.getProperties().get("Facing").toString();
+                float xpos = (float)Math.floor(r.x / CellSize) * CellSize;
+                float ypos = (float)Math.floor(r.y / CellSize) * CellSize;
+                if(dir.equals("Left")) {
+                    xpos -= 1 * CellSize;
+                    player.Dir = Player.LEFT;
+                }
+                else if(dir.equals("Right")) {
+                    xpos += 1 * CellSize;
+                    player.Dir = Player.RIGHT;
+                }
+                else if(dir.equals("Down")) {
+                    ypos -= 1 * CellSize;
+                    player.Dir = Player.DOWN;
+                }
+                else if(dir.equals("Up")) {
+                    ypos += 1 * CellSize;
+                    player.Dir = Player.UP;
+                }
                 player.setPosition(xpos, ypos);
             }
         }
+
+        //Spawn Stuff
+        SpawnMushrooms();
+
+        //Add sprites to map
+        for(Entity e : ObjectsAndCharacters) CurrentMap.getLayers().get("Sprites").getObjects().add(e.tmo);
         //Set Map
         MapRenderer.setMap(CurrentMap);
         MapRenderer.setView(GameReference.cam);
@@ -360,6 +448,32 @@ public class Gameplay implements Screen, InputProcessor{
         }
         return MapName;
     }
+    public boolean CheckSpriteCollision(CharacterEntity entity, float delta) {
+        boolean WillCollide = false;
+        Rectangle EntityRect = new Rectangle(entity.getBoundingRectangle());
+        switch(entity.Dir) {
+            case CharacterEntity.LEFT:
+                EntityRect.x -= (delta * entity.MoveSpeed * CellSize);
+                break;
+            case CharacterEntity.RIGHT:
+                EntityRect.x += (delta * entity.MoveSpeed * CellSize);
+                break;
+            case CharacterEntity.UP:
+                EntityRect.y += (delta * entity.MoveSpeed * CellSize);
+                break;
+            case CharacterEntity.DOWN:
+                EntityRect.y -= (delta * entity.MoveSpeed * CellSize);
+                break;
+        }
+        for(Entity e : ObjectsAndCharacters) {
+            if(e.getBoundingRectangle().overlaps(EntityRect) && e.Blocking) WillCollide = true;
+            else if(e.getBoundingRectangle().overlaps(EntityRect) && e.Blocking && e.IsMovable) {
+                //do further check here for moving objects
+            }
+        }
+        return WillCollide;
+    }
+
     public boolean CheckObjectCollision(CharacterEntity entity, float delta) {
         boolean WillCollide = false;
         Rectangle EntityRect = new Rectangle(entity.getBoundingRectangle());
@@ -427,21 +541,100 @@ public class Gameplay implements Screen, InputProcessor{
         return WillCollide;
     }
 
-    public void PopulateMap() {
+    public void SpawnMushrooms() {
        for(MapObject tmp : CurrentMap.getLayers().get("Spawn Points").getObjects()) {
            if(tmp.getProperties().get("Type").toString().equals("MushroomSource")) {
-               RectangleMapObject rect = (RectangleMapObject) tmp;
-               Rectangle r = rect.getRectangle();
-               float xpos = r.getX() + r.getWidth() * (float)Math.random();
-               float ypos = r.getY() + r.getHeight() * (float)Math.random();
-               boolean intersect = false;
-               Rectangle temprect = new Rectangle();
-               temprect.x = xpos;
-               temprect.y = ypos;
-               temprect.width = CellSize;
-               temprect.height
+               if (Math.random() < CurrentState.MushroomSpawnChance) {
+                   RectangleMapObject rect = (RectangleMapObject) tmp;
+                   Rectangle r = rect.getRectangle();
+                   float xpos = r.getX() + r.getWidth() * (float) Math.random();
+                   float ypos = r.getY() + r.getHeight() * (float) Math.random();
+                   boolean intersect = false;
+                   Rectangle temprect = new Rectangle();
+                   temprect.x = xpos;
+                   temprect.y = ypos;
+                   temprect.width = CellSize;
+                   temprect.height = CellSize;
+                   for (Entity e : ObjectsAndCharacters) {
+                       if (e.getBoundingRectangle().overlaps(temprect)) {
+                           intersect = true;
+                           break;
+                       }
+                   }
+                   //if chosen spawn point does not intersect with other objects/characters create mushroom source
+                   if (!intersect) {
+                       String[] Groups = rect.getProperties().get("Group").toString().split(" ");
+                       Vector<MushroomReference> spawnlist = new Vector<MushroomReference>();
+                       Iterator it = MushroomDatabase.entrySet().iterator();
+                       while (it.hasNext()) {
+                           Map.Entry pair = (Map.Entry) it.next();
+                           MushroomReference tmpmush = (MushroomReference) pair.getValue();
+                           for (int i = 0; i < Groups.length; i++) {
+                               if (Arrays.asList(tmpmush.Group).contains(Groups[i]) && !spawnlist.contains(tmpmush)) {
+                                   for (int j = 0; j < tmpmush.Rarity; j++) spawnlist.add(tmpmush);
+                                   break;
+                               }
+                           }
+                       }
+                       int index = (int) (Math.random() * spawnlist.size());
+                       MushroomSource newMushSource = new MushroomSource(scale, spawnlist.get(index).Name, spawnlist.get(index).Examine);
+                       newMushSource.Yield = (int) (Math.random() * spawnlist.get(index).BaseYield + 1);
+                       newMushSource.SubstrateRemaining = 0;
+                       newMushSource.setBounds(xpos, ypos, CellSize, CellSize);
+                       ObjectsAndCharacters.add(newMushSource);
+                       newMushSource.setAnimationSheets(GameReference.ResourceManager.get(newMushSource.Name + ".png", Texture.class), CellSize);
+                       newMushSource.GetStatic(0);
+                   }
+               }
            }
        }
+    }
+
+    public void UpdateControls(float delta) {
+        GameReference.cam.position.set(player.getX(), player.getY(), 0);
+        ControlsUp.setBounds(GameReference.cam.position.x - CAM_WIDTH / 2f + 0.125f * CAM_WIDTH, GameReference.cam.position.y - CAM_HEIGHT / 2f + 0.12f * CAM_HEIGHT, 0.1f * CAM_WIDTH, 0.1f * CAM_HEIGHT);
+        ControlsDown.setBounds(GameReference.cam.position.x - CAM_WIDTH / 2f + 0.125f * CAM_WIDTH, GameReference.cam.position.y - CAM_HEIGHT / 2f + 0.01f * CAM_HEIGHT, 0.1f * CAM_WIDTH, 0.1f * CAM_HEIGHT);
+        ControlsLeft.setBounds(GameReference.cam.position.x - CAM_WIDTH / 2f + 0.01f * CAM_WIDTH, GameReference.cam.position.y - CAM_HEIGHT / 2f + 0.06f * CAM_HEIGHT, 0.1f * CAM_WIDTH, 0.1f * CAM_HEIGHT);
+        ControlsRight.setBounds(GameReference.cam.position.x - CAM_WIDTH / 2f + 0.23f * CAM_WIDTH, GameReference.cam.position.y - CAM_HEIGHT / 2f + 0.06f * CAM_HEIGHT, 0.1f * CAM_WIDTH, 0.1f * CAM_HEIGHT);
+        ControlsInventory.setBounds(GameReference.cam.position.x - CAM_WIDTH / 2f + 0.89f * CAM_WIDTH, GameReference.cam.position.y - CAM_HEIGHT / 2f + 0.89f * CAM_HEIGHT, 0.1f * CAM_WIDTH, 0.1f * CAM_HEIGHT);
+
+        //Optional controls place out of screen if not in use
+        ControlsUse.setBounds(GameReference.cam.position.x + CAM_WIDTH, GameReference.cam.position.y + CAM_HEIGHT, 1, 1);
+        ControlsExaminable.setBounds(GameReference.cam.position.x + CAM_WIDTH, GameReference.cam.position.y + CAM_HEIGHT, 1, 1);
+
+        //Check player vision
+        Vector<String> queue = new Vector<String>();
+        for(Entity e : ObjectsAndCharacters) {
+            if(e.getBoundingRectangle().overlaps(player.Vision)) {
+                if (e instanceof Collectible) queue.add("Collectible");
+                if (e instanceof Examinable) queue.add("Examinable");
+                break;
+            }
+        }
+        for(int i = 0; i < queue.size(); i++) {
+            if(queue.get(i).toString().equals("Collectible")) {
+                ControlsUse.setBounds(GameReference.cam.position.x - CAM_WIDTH / 2f + (0.89f - (float)i * 0.11f) * CAM_WIDTH, GameReference.cam.position.y - CAM_HEIGHT / 2f + 0.05f * CAM_HEIGHT, 0.1f * CAM_WIDTH, 0.1f * CAM_HEIGHT);
+            }
+            else if(queue.get(i).toString().equals("Examinable")) {
+                ControlsExaminable.setBounds(GameReference.cam.position.x - CAM_WIDTH / 2f + (0.89f - (float)i * 0.1f) * CAM_WIDTH, GameReference.cam.position.y - CAM_HEIGHT / 2f + 0.05f * CAM_HEIGHT, 0.1f * CAM_WIDTH, 0.1f * CAM_HEIGHT);
+            }
+        }
+    }
+
+    public void UpdateWorld(float delta) {
+        CurrentState.CurrentTime += delta;
+        if(CurrentState.CurrentTime - CurrentState.LastUpdate > WORLD_UPDATE_INTERVAL) {
+            CurrentState.LastUpdate = CurrentState.CurrentTime;
+            if(CurrentState.MushroomSpawnChance >= NORMAL && CurrentState.MushroomSpawnChance < AFTER_RAIN) {
+                CurrentState.MushroomSpawnChance = (float)Math.random() * 0.1f + 0.9f;
+            }
+            else CurrentState.MushroomSpawnChance = (float)Math.random() * 0.89f;
+        }
+
+        if(CurrentState.CurrentTime > ONE_DAY) {
+            CurrentState.CurrentTime = 0;
+            CurrentState.LastUpdate = 0;
+        }
     }
 }
 

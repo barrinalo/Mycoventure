@@ -22,6 +22,7 @@ public class AnimatedEntity extends Entity {
     }
 
     public void setAnimationSheets(Texture t, int CellSize) {
+
         TextureRegion[][] tmp = TextureRegion.split(t, CellSize , CellSize);
         numrow = t.getHeight() / CellSize;
         numcol = t.getWidth() / CellSize;
@@ -45,8 +46,8 @@ public class AnimatedEntity extends Entity {
 
     public void GetStatic(int Index) {
         StateTime = 0;
+        tmo.setX(getX());
+        tmo.setY(getY());
         tmo.setTextureRegion(AnimationSheets.get(Index).getKeyFrame(StateTime));
     }
-
-    public void update(float delta, int CellSize){};
 }

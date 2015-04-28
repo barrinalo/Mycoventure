@@ -1,91 +1,165 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.0" orientation="orthogonal" renderorder="right-down" width="30" height="20" tilewidth="64" tileheight="64" nextobjectid="16">
+<map version="1.0" orientation="orthogonal" renderorder="right-down" width="30" height="30" tilewidth="64" tileheight="64" nextobjectid="144">
  <properties>
   <property name="Name" value="PathToTown"/>
  </properties>
- <tileset firstgid="1" name="Terrain" tilewidth="64" tileheight="64">
-  <image source="Terrain.png" width="512" height="512"/>
+ <tileset firstgid="1" name="WoodlandsTerrain" tilewidth="64" tileheight="64">
+  <image source="WoodlandsTerrain.png" width="512" height="512"/>
   <terraintypes>
-   <terrain name="Grass" tile="-1"/>
    <terrain name="Mud" tile="-1"/>
-   <terrain name="Stone Path" tile="-1"/>
+   <terrain name="Grass" tile="-1"/>
+   <terrain name="Stone" tile="-1"/>
   </terraintypes>
-  <tile id="16" terrain="1,1,2,2"/>
-  <tile id="17" terrain="0,0,0,1"/>
-  <tile id="18" terrain="0,0,1,1"/>
-  <tile id="19" terrain="0,0,1,0"/>
-  <tile id="23" terrain="2,2,1,1"/>
-  <tile id="24" terrain="1,1,1,2"/>
-  <tile id="25" terrain="0,1,0,1"/>
-  <tile id="26" terrain="1,1,1,1"/>
-  <tile id="27" terrain="1,0,1,0"/>
-  <tile id="31" terrain="1,1,2,1"/>
-  <tile id="32" terrain="1,2,1,2"/>
-  <tile id="33" terrain="0,1,0,0"/>
-  <tile id="34" terrain="1,1,0,0"/>
-  <tile id="35" terrain="1,0,0,0"/>
-  <tile id="39" terrain="2,1,2,1"/>
-  <tile id="40" terrain="1,2,1,1"/>
-  <tile id="41" terrain="0,0,0,2"/>
-  <tile id="42" terrain="0,0,2,2"/>
-  <tile id="43" terrain="0,0,2,0"/>
-  <tile id="47" terrain="2,1,1,1"/>
-  <tile id="48" terrain="0,0,0,0"/>
-  <tile id="49" terrain="0,2,0,2"/>
+  <tile id="16" terrain="0,0,2,2"/>
+  <tile id="17" terrain="1,1,1,0"/>
+  <tile id="18" terrain="1,1,0,0"/>
+  <tile id="19" terrain="1,1,0,1"/>
+  <tile id="23" terrain="2,2,0,0"/>
+  <tile id="24" terrain="0,0,0,2"/>
+  <tile id="25" terrain="1,0,1,0"/>
+  <tile id="26" terrain="0,0,0,0"/>
+  <tile id="27" terrain="0,1,0,1"/>
+  <tile id="31" terrain="0,0,2,0"/>
+  <tile id="32" terrain="0,2,0,2"/>
+  <tile id="33" terrain="1,0,1,1"/>
+  <tile id="34" terrain="0,0,1,1"/>
+  <tile id="35" terrain="0,1,1,1"/>
+  <tile id="39" terrain="2,0,2,0"/>
+  <tile id="40" terrain="0,2,0,0"/>
+  <tile id="41" terrain="1,1,1,2"/>
+  <tile id="42" terrain="1,1,2,2"/>
+  <tile id="43" terrain="1,1,2,1"/>
+  <tile id="47" terrain="2,0,0,0"/>
+  <tile id="48" terrain="1,1,1,1"/>
+  <tile id="49" terrain="1,2,1,2"/>
   <tile id="50" terrain="2,2,2,2"/>
-  <tile id="51" terrain="2,0,2,0"/>
-  <tile id="52" terrain="2,2,2,0"/>
-  <tile id="53" terrain="2,2,0,2"/>
-  <tile id="54" terrain="1,1,1,0"/>
-  <tile id="55" terrain="1,1,0,1"/>
+  <tile id="51" terrain="2,1,2,1"/>
+  <tile id="52" terrain="2,2,2,1"/>
+  <tile id="53" terrain="2,2,1,2"/>
+  <tile id="54" terrain="0,0,0,1"/>
+  <tile id="55" terrain="0,0,1,0"/>
   <tile id="56">
    <properties>
     <property name="Unwalkable" value=""/>
    </properties>
-   <objectgroup draworder="index">
-    <object id="0" x="-1" y="0" width="66" height="64"/>
-   </objectgroup>
   </tile>
-  <tile id="57" terrain="0,2,0,0"/>
-  <tile id="58" terrain="2,2,0,0"/>
-  <tile id="59" terrain="2,0,0,0"/>
-  <tile id="60" terrain="2,0,2,2"/>
-  <tile id="61" terrain="0,2,2,2"/>
-  <tile id="62" terrain="1,0,1,1"/>
-  <tile id="63" terrain="0,1,1,1"/>
+  <tile id="57" terrain="1,2,1,1"/>
+  <tile id="58" terrain="2,2,1,1"/>
+  <tile id="59" terrain="2,1,1,1"/>
+  <tile id="60" terrain="2,1,2,2"/>
+  <tile id="61" terrain="1,2,2,2"/>
+  <tile id="62" terrain="0,1,0,0"/>
+  <tile id="63" terrain="1,0,0,0"/>
  </tileset>
- <layer name="Terrain" width="30" height="20">
+ <tileset firstgid="65" name="WoodlandsBuildings" tilewidth="64" tileheight="64">
+  <image source="WoodlandsBuildings.png" width="512" height="512"/>
+ </tileset>
+ <tileset firstgid="129" name="WoodlandsObjects" tilewidth="64" tileheight="64">
+  <image source="WoodlandsObjects.png" width="512" height="512"/>
+ </tileset>
+ <tileset firstgid="193" name="WoodlandsTree" tilewidth="256" tileheight="384">
+  <image source="WoodlandsTree.png" width="256" height="384"/>
+ </tileset>
+ <layer name="Terrain" width="30" height="30">
   <data encoding="base64" compression="zlib">
-   eJwzZGBgMKQhNgJiYyA2obE9o/YOLXu1gFibAmxHpr0w91KKybXXFIitKcA2dIqfkZYeR+0dtXfU3lF7qW0vAMmZc74=
+   eJwzZGBgMBwArE0k1qGyvcZEYpNReynC1jiwGY3txYWNRu0dtXfU3lF7R+0dtXfU3gG315aBPm0/dHvp1RYaafZaMeBu8422/YaOvQAp4q3q
   </data>
  </layer>
- <layer name="Background" width="30" height="20">
+ <layer name="Background" width="30" height="30">
   <data encoding="base64" compression="zlib">
-   eJztwTEBAAAAwqD1T20JT6AAAHgaCWAAAQ==
+   eJxjYBheYOcgs79qQFwxMGCwhf0ooD3YONAOGCAwHNLaYPUDrd21C4h3A/EeIN6LR91wTNuU+mkTEnsrhWYRC6iZHkg1i9i0Qk2AzY2UhgEp+nei0UMFDDX34gODzS/0dg817KNH+T3Y4olSAAAugxg9
   </data>
  </layer>
- <objectgroup name="Objects"/>
- <objectgroup name="Exits And Entrances">
-  <object id="13" x="1600" y="0" width="63" height="30">
-   <properties>
-    <property name="From" value="Mycofarm"/>
-    <property name="To" value="Mycofarm"/>
-   </properties>
-  </object>
+ <objectgroup name="Sprites"/>
+ <objectgroup name="Objects">
+  <object id="9" x="126.667" y="601.333" width="66.6667" height="40"/>
+  <object id="10" x="320" y="985.333" width="65.3333" height="40"/>
+  <object id="11" x="832" y="1753.33" width="66.6667" height="40"/>
+  <object id="32" gid="193" x="774" y="1032"/>
+  <object id="34" gid="193" x="1138" y="948"/>
+  <object id="37" gid="193" x="1600" y="1452"/>
+  <object id="38" gid="193" x="1702" y="1486"/>
+  <object id="39" gid="193" x="816" y="314"/>
+  <object id="41" gid="193" x="796" y="516"/>
+  <object id="42" gid="193" x="946" y="520"/>
+  <object id="43" gid="193" x="904" y="932"/>
+  <object id="44" gid="193" x="1098" y="526"/>
+  <object id="47" gid="193" x="1342" y="666"/>
+  <object id="48" gid="193" x="1244" y="894"/>
+  <object id="50" gid="193" x="1578" y="796"/>
+  <object id="51" gid="193" x="1424" y="656"/>
+  <object id="52" gid="193" x="1458" y="564"/>
+  <object id="53" gid="193" x="818" y="418"/>
+  <object id="54" gid="193" x="1082" y="314"/>
+  <object id="55" gid="193" x="1200" y="462"/>
+  <object id="57" gid="193" x="1718" y="816"/>
+  <object id="59" gid="193" x="1524" y="718"/>
+  <object id="76" gid="185" x="1120" y="408"/>
+  <object id="77" gid="185" x="1116" y="446"/>
+  <object id="83" x="1600" y="896" width="250" height="62"/>
+  <object id="84" x="1342" y="1146" width="160" height="72"/>
+  <object id="85" x="1538" y="1300" width="164" height="72"/>
+  <object id="86" x="1674" y="1348" width="126" height="78"/>
+  <object id="87" x="1778" y="1382" width="138" height="86"/>
+  <object id="88" x="1052" y="1068" width="163" height="64"/>
+  <object id="98" x="828" y="958.667" width="168" height="64"/>
+  <object id="99" x="956" y="824" width="520" height="106.667"/>
+  <object id="100" x="844" y="438.667" width="477.333" height="81.3333"/>
+  <object id="101" x="1420" y="572" width="226.667" height="72"/>
+  <object id="102" x="1589.33" y="602.667" width="158.667" height="94.6667"/>
+  <object id="103" x="1633.33" y="722.667" width="285.333" height="84"/>
+  <object id="112" x="833.333" y="2.66667" width="565.333" height="433.333"/>
+  <object id="113" x="1748" y="84" width="37.3333" height="106.667"/>
+  <object id="114" x="1861.33" y="86.6667" width="42.6667" height="102.667"/>
+  <object id="115" x="1770.67" y="85.3333" width="117.333" height="30.6667"/>
+  <object id="130" gid="193" x="40" y="1928"/>
+  <object id="134" x="897" y="1221" width="250" height="62"/>
+  <object id="137" x="76" y="1856" width="188" height="68"/>
+  <object id="138" gid="193" x="1002" y="1140"/>
+  <object id="139" gid="193" x="1286" y="1236"/>
+  <object id="140" gid="193" x="1476" y="1384"/>
+  <object id="142" x="1792" y="1050" width="66" height="38"/>
  </objectgroup>
  <objectgroup name="Spawn Points">
-  <object id="15" x="1527.27" y="845.455" width="263.636" height="172.727">
+  <object id="135" x="896" y="1224" width="246" height="56">
    <properties>
-    <property name="Chance" value="100"/>
+    <property name="Group" value="HotWood"/>
+    <property name="Type" value="MushroomSource"/>
+   </properties>
+  </object>
+  <object id="136" x="1602" y="898" width="246" height="60">
+   <properties>
     <property name="Group" value="ColdWood"/>
     <property name="Type" value="MushroomSource"/>
    </properties>
   </object>
  </objectgroup>
- <objectgroup name="Sprites"/>
- <layer name="Foreground" width="30" height="20" opacity="0.9">
+ <objectgroup name="Exits And Entrances">
+  <object id="8" x="11" y="212" width="20" height="30">
+   <properties>
+    <property name="Facing" value="Right"/>
+    <property name="From" value="Mycofarm"/>
+    <property name="To" value="Mycofarm"/>
+   </properties>
+  </object>
+  <object id="131" x="1102" y="1872" width="36" height="32">
+   <properties>
+    <property name="Facing" value="Up"/>
+    <property name="From" value="Town"/>
+    <property name="To" value="Town"/>
+   </properties>
+  </object>
+  <object id="132" x="1810" y="140" width="28" height="30">
+   <properties>
+    <property name="Facing" value="Down"/>
+    <property name="From" value="AsceticHut"/>
+    <property name="To" value="AsceticHut"/>
+   </properties>
+  </object>
+ </objectgroup>
+ <layer name="Foreground" width="30" height="30">
   <data encoding="base64" compression="zlib">
-   eJztwTEBAAAAwqD1T20JT6AAAHgaCWAAAQ==
+   eJztzbENACAMA8GsC6mACrF8jMQAVK7+pJdLR/g01VUaP6+hplrm3/32mH8BAAAA4EcBqJoDiQ==
   </data>
  </layer>
 </map>

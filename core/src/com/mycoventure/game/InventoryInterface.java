@@ -54,8 +54,7 @@ public class InventoryInterface implements InterfaceTemplate {
         Iterator it = Ref.player.Mushrooms.entrySet().iterator();
         while(it.hasNext()) {
             Map.Entry pair = (Map.Entry)it.next();
-            InventoryList.add(new InventoryEntry(Ref.GameReference.ResourceManager.get(pair.getKey() + ".png", Texture.class), pair.getKey().toString(), "", Integer.parseInt(pair.getValue().toString()), Ref.GameReference.ResourceManager));
-            it.remove();
+            InventoryList.add(new InventoryEntry(Ref.GameReference.ResourceManager.get(pair.getKey() + ".png", Texture.class), pair.getKey().toString(), Ref.MushroomDatabase.get(pair.getKey().toString()).Examine, Integer.parseInt(pair.getValue().toString()), Ref.GameReference.ResourceManager));
             InventoryList.lastElement().Format(pos, Ref.CellSize);
             pos++;
         }
@@ -89,20 +88,22 @@ public class InventoryInterface implements InterfaceTemplate {
     @Override
     public void touchDragged(int screenX, int screenY, int pointer) {
         int dif = screenY - tempy;
-        if (dif > 0) {
-            // scroll up
-            if (Ref.GameReference.cam.position.y + Ref.GameReference.cam.viewportHeight / 2 < 0) {
-                Ref.GameReference.cam.translate(0, screenY - tempy);
-                Ref.GameReference.cam.update();
-                tempy = screenY;
-            }
-        } else if (dif < 0) {
-            //scroll down
-            Vector3 screencoords = Ref.GameReference.cam.project(new Vector3(0, InventoryList.lastElement().Display.getY(), 0));
-            if (screencoords.y / Ref.GameReference.cam.viewportHeight < 0) {
-                Ref.GameReference.cam.translate(0, screenY - tempy);
-                Ref.GameReference.cam.update();
-                tempy = screenY;
+        if(InventoryList.size() >= 9) {
+            if (dif > 0) {
+                // scroll up
+                if (Ref.GameReference.cam.position.y + Ref.GameReference.cam.viewportHeight / 2 < 0) {
+                    Ref.GameReference.cam.translate(0, screenY - tempy);
+                    Ref.GameReference.cam.update();
+                    tempy = screenY;
+                }
+            } else if (dif < 0) {
+                //scroll down
+                Vector3 screencoords = Ref.GameReference.cam.project(new Vector3(0, InventoryList.lastElement().Display.getY(), 0));
+                if (screencoords.y / Ref.GameReference.cam.viewportHeight < 0) {
+                    Ref.GameReference.cam.translate(0, screenY - tempy);
+                    Ref.GameReference.cam.update();
+                    tempy = screenY;
+                }
             }
         }
     }

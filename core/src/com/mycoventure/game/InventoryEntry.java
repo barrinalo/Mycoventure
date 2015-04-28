@@ -17,18 +17,13 @@ public class InventoryEntry {
 
     public InventoryEntry(Texture Display, String Name, String Description, int Quantity, AssetManager res) {
         this.Display = new Sprite(Display);
-        this.Name = new Label(Name, new Label.LabelStyle(res.get("MediumFont", BitmapFont.class), Color.WHITE));
+        this.Name = new Label(Name, new Label.LabelStyle(res.get("SmallFont", BitmapFont.class), Color.WHITE));
         this.Description = new Label(Description, new Label.LabelStyle(res.get("SmallFont", BitmapFont.class), Color.WHITE));
         this.Quantity = new Label(Integer.toString(Quantity), new Label.LabelStyle(res.get("MediumFont", BitmapFont.class), Color.WHITE));
 
         this.Name.setWrap(true);
         this.Description.setWrap(true);
         this.Quantity.setWrap(true);
-
-        this.Name.setEllipsis(true);
-        this.Description.setEllipsis(true);
-        this.Quantity.setEllipsis(true);
-
     }
     public void Format(int position, int CellSize) {
         Display.setBounds(0.5f * CellSize, -position * CellSize, CellSize, CellSize);

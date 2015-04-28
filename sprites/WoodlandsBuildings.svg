@@ -14,9 +14,9 @@
    height="512"
    id="svg2"
    version="1.1"
-   inkscape:version="0.48.5 r10040"
-   sodipodi:docname="Buildings.svg"
-   inkscape:export-filename="C:\Users\David\Desktop\Mycoventure\android\assets\Buildings.png"
+   inkscape:version="0.91 r13725"
+   sodipodi:docname="WoodlandsBuildings.svg"
+   inkscape:export-filename="C:\Users\David.Chong\Desktop\Mycoventure\android\assets\WoodlandsBuildings.png"
    inkscape:export-xdpi="90"
    inkscape:export-ydpi="90">
   <defs
@@ -55,14 +55,14 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="0.7"
-     inkscape:cx="262.47249"
+     inkscape:zoom="1.5066406"
+     inkscape:cx="163.24511"
      inkscape:cy="235.42483"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="false"
      inkscape:window-width="1366"
-     inkscape:window-height="705"
+     inkscape:window-height="706"
      inkscape:window-x="-8"
      inkscape:window-y="-8"
      inkscape:window-maximized="1" />
@@ -74,7 +74,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -569,7 +569,7 @@
          style="fill:#800000;fill-opacity:1;stroke:#333333;stroke-width:5;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1" />
       <path
          transform="translate(-4,540.36218)"
-         d="m 335.35716,396.82144 c 0,4.438 -3.59772,8.03572 -8.03572,8.03572 -4.438,0 -8.03571,-3.59772 -8.03571,-8.03572 0,-4.438 3.59771,-8.03571 8.03571,-8.03571 4.438,0 8.03572,3.59771 8.03572,8.03571 z"
+         d="m 335.35716,396.82144 a 8.0357141,8.0357141 0 0 1 -8.03572,8.03572 8.0357141,8.0357141 0 0 1 -8.03571,-8.03572 8.0357141,8.0357141 0 0 1 8.03571,-8.03571 8.0357141,8.0357141 0 0 1 8.03572,8.03571 z"
          sodipodi:ry="8.0357141"
          sodipodi:rx="8.0357141"
          sodipodi:cy="396.82144"

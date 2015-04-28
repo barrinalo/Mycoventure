@@ -32,12 +32,15 @@ public class LoadingScreen implements Screen {
         LoadingBackground = new Sprite(GameReference.ResourceManager.get("LoadingBackground.png", Texture.class));
         LoadingBackground.setBounds(0, 0, GameReference.DEFAULT_WIDTH, GameReference.DEFAULT_HEIGHT);
 
-        //Load Game Resources
+        //Load Maps
         GameReference.ResourceManager.setLoader(TiledMap.class, new TmxMapLoader(new InternalFileHandleResolver()));
         GameReference.ResourceManager.load("Mycofarm.tmx", TiledMap.class);
         GameReference.ResourceManager.load("PathToTown.tmx", TiledMap.class);
 
+        //Load Startscreen Stuff
         GameReference.ResourceManager.load("StartScreen.png", Texture.class);
+
+        //Load UI Controls
         GameReference.ResourceManager.load("ControlsUse.png", Texture.class);
         GameReference.ResourceManager.load("ControlsUp.png", Texture.class);
         GameReference.ResourceManager.load("ControlsDown.png", Texture.class);
@@ -46,11 +49,21 @@ public class LoadingScreen implements Screen {
         GameReference.ResourceManager.load("ControlsSettings.png", Texture.class);
         GameReference.ResourceManager.load("ControlsInventory.png", Texture.class);
         GameReference.ResourceManager.load("ControlsCancel.png", Texture.class);
+        GameReference.ResourceManager.load("ControlsExaminable.png", Texture.class);
+
+        //Load Player
         GameReference.ResourceManager.load("Player.png", Texture.class);
+
+        //Load InventoryIcons
         GameReference.ResourceManager.load("Compost.png", Texture.class);
         GameReference.ResourceManager.load("Culture.png", Texture.class);
         GameReference.ResourceManager.load("Spawn.png", Texture.class);
 
+        //Load Mushrooms
+        GameReference.ResourceManager.load("Golden Oyster.png", Texture.class);
+        GameReference.ResourceManager.load("Shiitake.png", Texture.class);
+
+        //Load Fonts
         GameReference.ResourceManager.setLoader(BitmapFont.class, new FreetypeFontLoader(new InternalFileHandleResolver()));
         GameReference.ResourceManager.setLoader(FreeTypeFontGenerator.class, new FreeTypeFontGeneratorLoader(new InternalFileHandleResolver()));
         FreetypeFontLoader.FreeTypeFontLoaderParameter FontParams = new FreetypeFontLoader.FreeTypeFontLoaderParameter();

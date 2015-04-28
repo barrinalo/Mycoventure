@@ -6,7 +6,7 @@ import com.badlogic.gdx.maps.objects.TextureMapObject;
 /**
  * Created by david.chong on 2015/04/27.
  */
-public class Entity extends Sprite{
+public class Entity extends Sprite implements Updatable{
     TextureMapObject tmo;
     float scale;
     boolean Blocking, IsMovable;
@@ -24,4 +24,6 @@ public class Entity extends Sprite{
         tmo.setX(getX());
         tmo.setY(getY());
     }
+
+    public void update(float delta, int CellSize){};
 }

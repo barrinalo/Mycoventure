@@ -6,5 +6,5 @@ package com.mycoventure.game;
 public class MushroomReference {
     String Examine, Name;
     String[] Group;
-    int BaseYield, BaseSpeed, BaseHumidityPreference, BaseTemperatureTrigger, BaseEfficiency, BaseSupplementPreference;
+    int BaseYield, BaseSpeed, BaseHumidityPreference, BaseTemperatureTrigger, BaseEfficiency, BaseSupplementPreference, Rarity;
 }
