@@ -16,7 +16,7 @@
    version="1.1"
    inkscape:version="0.91 r13725"
    sodipodi:docname="WoodlandsBuildings.svg"
-   inkscape:export-filename="C:\Users\David.Chong\Desktop\Mycoventure\android\assets\WoodlandsBuildings.png"
+   inkscape:export-filename="C:\Users\David\Desktop\Mycoventure\Mycoventure\android\assets\WoodlandsBuildings.png"
    inkscape:export-xdpi="90"
    inkscape:export-ydpi="90">
   <defs
@@ -55,14 +55,14 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="1.5066406"
-     inkscape:cx="163.24511"
-     inkscape:cy="235.42483"
+     inkscape:zoom="0.7533203"
+     inkscape:cx="-183.13805"
+     inkscape:cy="216.77596"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="false"
      inkscape:window-width="1366"
-     inkscape:window-height="706"
+     inkscape:window-height="705"
      inkscape:window-x="-8"
      inkscape:window-y="-8"
      inkscape:window-maximized="1" />
@@ -74,7 +74,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title />
+        <dc:title></dc:title>
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -848,5 +848,38 @@
          d="m 223.74879,287.24106 -5.55584,10.10152"
          style="fill:none;stroke:#550000;stroke-width:2;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none" />
     </g>
+    <g
+       id="g4292">
+      <rect
+         y="796.36218"
+         x="-2.5732422e-006"
+         height="64"
+         width="64"
+         id="rect4266"
+         style="opacity:1;fill:#80ffe6;stroke:none" />
+      <path
+         sodipodi:nodetypes="cccsc"
+         inkscape:connector-curvature="0"
+         id="path4268"
+         d="m 5.64169,800.34454 53.09826,-0.33186 0.33187,52.10267 c 0,0 1.41757,-41.3321 -13.27457,-45.79725 -22.02564,-6.69392 -40.15556,-5.97356 -40.15556,-5.97356 z"
+         style="fill:#d7f4ee;fill-rule:evenodd;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+    </g>
+    <rect
+       style="opacity:1;fill:#a05a2c;stroke:none"
+       id="rect4274"
+       width="64"
+       height="64"
+       x="64"
+       y="796.36218" />
+    <path
+       style="fill:none;fill-rule:evenodd;stroke:#502d16;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="m 70.969148,813.6191 8.296604,-3.31864 9.624064,4.31424"
+       id="path4276"
+       inkscape:connector-curvature="0" />
+    <path
+       style="fill:none;fill-rule:evenodd;stroke:#502d16;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="m 100.50506,844.81433 10.95152,-4.64609 7.30101,3.98236"
+       id="path4278"
+       inkscape:connector-curvature="0" />
   </g>
 </svg>
