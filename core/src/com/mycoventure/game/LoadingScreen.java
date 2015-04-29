@@ -36,6 +36,8 @@ public class LoadingScreen implements Screen {
         GameReference.ResourceManager.setLoader(TiledMap.class, new TmxMapLoader(new InternalFileHandleResolver()));
         GameReference.ResourceManager.load("Mycofarm.tmx", TiledMap.class);
         GameReference.ResourceManager.load("PathToTown.tmx", TiledMap.class);
+        GameReference.ResourceManager.load("Town.tmx", TiledMap.class);
+        GameReference.ResourceManager.load("AsceticHut.tmx", TiledMap.class);
 
         //Load Startscreen Stuff
         GameReference.ResourceManager.load("StartScreen.png", Texture.class);
@@ -50,6 +52,8 @@ public class LoadingScreen implements Screen {
         GameReference.ResourceManager.load("ControlsInventory.png", Texture.class);
         GameReference.ResourceManager.load("ControlsCancel.png", Texture.class);
         GameReference.ResourceManager.load("ControlsExaminable.png", Texture.class);
+        GameReference.ResourceManager.load("ControlsPlant.png", Texture.class);
+        GameReference.ResourceManager.load("ControlsConfirm.png", Texture.class);
 
         //Load Player
         GameReference.ResourceManager.load("Player.png", Texture.class);
@@ -58,10 +62,17 @@ public class LoadingScreen implements Screen {
         GameReference.ResourceManager.load("Compost.png", Texture.class);
         GameReference.ResourceManager.load("Culture.png", Texture.class);
         GameReference.ResourceManager.load("Spawn.png", Texture.class);
+        GameReference.ResourceManager.load("Money.png", Texture.class);
+        GameReference.ResourceManager.load("Log.png", Texture.class);
+        GameReference.ResourceManager.load("Supplements.png", Texture.class);
+        GameReference.ResourceManager.load("Bulkers.png", Texture.class);
 
         //Load Mushrooms
         GameReference.ResourceManager.load("Golden Oyster.png", Texture.class);
         GameReference.ResourceManager.load("Shiitake.png", Texture.class);
+
+        //Load other objects
+        GameReference.ResourceManager.load("WoodlandsLog.png", Texture.class);
 
         //Load Fonts
         GameReference.ResourceManager.setLoader(BitmapFont.class, new FreetypeFontLoader(new InternalFileHandleResolver()));

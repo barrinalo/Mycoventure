@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.0" orientation="orthogonal" renderorder="right-down" width="30" height="30" tilewidth="64" tileheight="64" nextobjectid="188">
+<map version="1.0" orientation="orthogonal" renderorder="right-down" width="30" height="30" tilewidth="64" tileheight="64" nextobjectid="192">
  <properties>
   <property name="Name" value="PathToTown"/>
  </properties>
@@ -87,7 +87,7 @@
   <object id="101" x="1420" y="572" width="184.243" height="68.9697"/>
   <object id="102" x="1589.33" y="602.667" width="158.667" height="94.6667"/>
   <object id="103" x="1633.33" y="722.667" width="294.424" height="84"/>
-  <object id="112" x="833.333" y="2.66667" width="565.333" height="433.333"/>
+  <object id="112" x="833.333" y="2.66667" width="193.333" height="435.333"/>
   <object id="113" x="1748" y="84" width="37.3333" height="106.667"/>
   <object id="114" x="1861.33" y="86.6667" width="42.6667" height="102.667"/>
   <object id="115" x="1770.67" y="85.3333" width="117.333" height="30.6667"/>
@@ -117,18 +117,34 @@
   <object id="184" gid="153" x="1490.18" y="1376.85"/>
   <object id="186" gid="153" x="1596.24" y="1422.3"/>
   <object id="187" gid="153" x="1696.24" y="1473.82"/>
+  <object id="188" x="1164" y="336" width="174" height="66"/>
+  <object id="189" x="1310" y="246" width="80" height="64"/>
  </objectgroup>
  <objectgroup name="Spawn Points">
-  <object id="135" x="896" y="1224" width="246" height="56">
+  <object id="135" x="926" y="1230" width="196" height="38">
    <properties>
     <property name="Group" value="HotWood"/>
     <property name="Type" value="MushroomSource"/>
    </properties>
   </object>
-  <object id="136" x="1602" y="898" width="246" height="60">
+  <object id="136" x="1624" y="908" width="192" height="38">
    <properties>
     <property name="Group" value="ColdWood"/>
     <property name="Type" value="MushroomSource"/>
+   </properties>
+  </object>
+  <object id="190" x="64" y="1088" width="128" height="60">
+   <properties>
+    <property name="Logs" value="10"/>
+    <property name="Name" value="WoodlandsLog"/>
+    <property name="Type" value="ResourceSource"/>
+   </properties>
+  </object>
+  <object id="191" x="1482" y="1796" width="128" height="60">
+   <properties>
+    <property name="Logs" value="10"/>
+    <property name="Name" value="WoodlandsLog"/>
+    <property name="Type" value="ResourceSource"/>
    </properties>
   </object>
  </objectgroup>

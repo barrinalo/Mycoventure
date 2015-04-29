@@ -38,23 +38,50 @@ public class InventoryInterface implements InterfaceTemplate {
         Ref.GameReference.cam.position.y = -Ref.CAM_HEIGHT / 2;
 
         int pos = 2;
+        if(Ref.player.Money != 0) {
+            InventoryList.add(new InventoryEntry(Ref.GameReference.ResourceManager.get("Money.png", Texture.class), "Money", "Money makes the world go round!", Ref.player.Money, Ref.GameReference.ResourceManager, Ref.CellSize));
+            InventoryList.lastElement().Format(pos, Ref.CellSize);
+            pos++;
+        }
+        if(Ref.player.Bulkers != 0) {
+            InventoryList.add(new InventoryEntry(Ref.GameReference.ResourceManager.get("Bulkers.png", Texture.class), "Bulkers", "This can be used to make compost!", Ref.player.Bulkers, Ref.GameReference.ResourceManager, Ref.CellSize));
+            InventoryList.lastElement().Format(pos, Ref.CellSize);
+            pos++;
+        }
+        if(Ref.player.Supplements != 0) {
+            InventoryList.add(new InventoryEntry(Ref.GameReference.ResourceManager.get("Supplements.png", Texture.class), "Supplements", "This can be used to make compost!", Ref.player.Supplements, Ref.GameReference.ResourceManager, Ref.CellSize));
+            InventoryList.lastElement().Format(pos, Ref.CellSize);
+            pos++;
+        }
+        if(Ref.player.Logs != 0) {
+            InventoryList.add(new InventoryEntry(Ref.GameReference.ResourceManager.get("Log.png", Texture.class), "Logs", "Something might grow on this", Ref.player.Logs, Ref.GameReference.ResourceManager, Ref.CellSize));
+            InventoryList.lastElement().Format(pos, Ref.CellSize);
+            pos++;
+        }
+
+        if(Ref.player.Waste != 0) {
+            InventoryList.add(new InventoryEntry(Ref.GameReference.ResourceManager.get("Compost.png", Texture.class), "Mushroom Waste", "This would be good for plants", Ref.player.Money, Ref.GameReference.ResourceManager, Ref.CellSize));
+            InventoryList.lastElement().Format(pos, Ref.CellSize);
+            pos++;
+        }
         for(Compost c : Ref.player.TypesOfCompost) {
             InventoryList.add(new InventoryEntry(Ref.GameReference.ResourceManager.get("Compost.png", Texture.class), "Compost",
                     "Bulk - " + Float.toString(c.BulkPercentage) + "%\nSupplement - "
-                            + Float.toString(c.SupplementPercentage) + "%", c.Quantity, Ref.GameReference.ResourceManager));
+                            + Float.toString(c.SupplementPercentage) + "%", c.Quantity, Ref.GameReference.ResourceManager, Ref.CellSize));
             InventoryList.lastElement().Format(pos, Ref.CellSize);
             pos++;
         }
         for(Spawn s : Ref.player.SpawnAndCultures) {
-            if(s.Culture) InventoryList.add(new InventoryEntry(Ref.GameReference.ResourceManager.get("Culture.png", Texture.class), s.Name, s.Description, s.Quantity, Ref.GameReference.ResourceManager));
-            else InventoryList.add(new InventoryEntry(Ref.GameReference.ResourceManager.get("Spawn.png", Texture.class), s.Name, s.Description, s.Quantity, Ref.GameReference.ResourceManager));
+            if(s.Quantity == 0) InventoryList.add(new InventoryEntry(Ref.GameReference.ResourceManager.get("Culture.png", Texture.class), s.Name, s.Description, 1, Ref.GameReference.ResourceManager, Ref.CellSize));
+            else InventoryList.add(new InventoryEntry(Ref.GameReference.ResourceManager.get("Spawn.png", Texture.class), s.Name, s.Description, s.Quantity, Ref.GameReference.ResourceManager, Ref.CellSize));
+
             InventoryList.lastElement().Format(pos, Ref.CellSize);
             pos++;
         }
         Iterator it = Ref.player.Mushrooms.entrySet().iterator();
         while(it.hasNext()) {
             Map.Entry pair = (Map.Entry)it.next();
-            InventoryList.add(new InventoryEntry(Ref.GameReference.ResourceManager.get(pair.getKey() + ".png", Texture.class), pair.getKey().toString(), Ref.MushroomDatabase.get(pair.getKey().toString()).Examine, Integer.parseInt(pair.getValue().toString()), Ref.GameReference.ResourceManager));
+            InventoryList.add(new InventoryEntry(Ref.GameReference.ResourceManager.get(pair.getKey() + ".png", Texture.class), pair.getKey().toString(), Ref.MushroomDatabase.get(pair.getKey().toString()).Examine, Integer.parseInt(pair.getValue().toString()), Ref.GameReference.ResourceManager, Ref.CellSize));
             InventoryList.lastElement().Format(pos, Ref.CellSize);
             pos++;
         }
@@ -70,10 +97,7 @@ public class InventoryInterface implements InterfaceTemplate {
         Ref.GameReference.batch.setProjectionMatrix(Ref.GameReference.cam.combined);
         Ref.GameReference.cam.update();
         Ref.GameReference.batch.begin();
-        for(int i = 0; i < InventoryList.size(); i++) {
-            Vector3 screencoords = Ref.GameReference.cam.project(new Vector3(0, InventoryList.get(i).Display.getY(), 0));
-            if(screencoords.y / Ref.GameReference.cam.viewportHeight <= 0.9f) InventoryList.get(i).draw(Ref.GameReference.batch);
-        }
+        for(int i = 0; i < InventoryList.size(); i++) InventoryList.get(i).draw(Ref.GameReference.batch);
         Header.draw(Ref.GameReference.batch, 1);
         CancelButton.draw(Ref.GameReference.batch);
         Ref.GameReference.batch.end();

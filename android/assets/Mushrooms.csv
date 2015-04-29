@@ -1,3 +1,3 @@
-Name,Examine,Group,Base Yield,Base Speed,Base Humidity Preference,Base Supplement Preference,Base Efficiency,Base Temperature Trigger,Rarity
-Shiitake,A faint musky odour surrounds it,ColdWood,10,10,90,20,5,5,5
-Golden Oyster,Its cap is a brilliant yellow,HotWood,10,5,90,10,5,20,10
+Name,Examine,Group,Base Yield,Base Speed,Base Humidity Preference,Base Supplement Preference,Base Efficiency,Base Temperature Trigger,Rarity,Can be planted on log
+Shiitake,A faint musky odour surrounds it,ColdWood,10,10,90,20,5,5,5,Yes
+Golden Oyster,Its cap is a brilliant yellow,HotWood,10,5,90,10,5,20,10,Yes

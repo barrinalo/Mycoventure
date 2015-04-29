@@ -6,6 +6,8 @@ package com.mycoventure.game;
 public class GameState {
     String CurrentMap;
     float MushroomSpawnChance;
+    float ResourceSpawnChance;
     float CurrentTime;
     float LastUpdate;
+    float CurrentTemperature;
 }

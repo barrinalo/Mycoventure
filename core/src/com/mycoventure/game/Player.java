@@ -7,8 +7,10 @@ import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.maps.objects.TextureMapObject;
+import com.badlogic.gdx.maps.tiled.TiledMap;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Vector;
 
 /**
@@ -20,7 +22,7 @@ public class Player extends CharacterEntity {
     HashMap<String, Integer> Mushrooms;
     Vector<Spawn> SpawnAndCultures;
     Vector<Compost> TypesOfCompost;
-
+    Vector<MushroomSource> MyGrowingMushrooms;
     public Player(float scale) {
         super(scale);
 
@@ -33,6 +35,7 @@ public class Player extends CharacterEntity {
 
         SpawnAndCultures = new Vector<Spawn>();
         TypesOfCompost = new Vector<Compost>();
+        MyGrowingMushrooms = new Vector<MushroomSource>();
         Mushrooms = new HashMap<String, Integer>();
     }
 
@@ -65,7 +68,21 @@ public class Player extends CharacterEntity {
 
         return temp;
     }
-    public void update(float delta, int CellSize) {
+    public void update(float delta, int CellSize, TiledMap CurrentMap) {
+        Iterator it = TypesOfCompost.iterator();
+        while(it.hasNext()) {
+            Compost c = (Compost)it.next();
+            if(c.Quantity == 0) it.remove();
+        }
+        it = MyGrowingMushrooms.iterator();
+        while(it.hasNext()) {
+            MushroomSource m = (MushroomSource)it.next();
+            if(m.Yield == 0 && m.SubstrateRemaining == 0) {
+                CurrentMap.getLayers().get("Sprites").getObjects().remove(m.tmo);
+                CurrentMap.getLayers().get("Sprites").getObjects().remove(m.Background);
+                it.remove();
+            }
+        }
         if(IsMoving) {
             switch(Dir) {
                 case LEFT:

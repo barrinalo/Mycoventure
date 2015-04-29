@@ -16,9 +16,9 @@
    version="1.1"
    inkscape:version="0.91 r13725"
    sodipodi:docname="Compost.svg"
-   inkscape:export-filename="C:\Users\David\Desktop\Mycoventure\android\assets\Compost.png"
-   inkscape:export-xdpi="30.958923"
-   inkscape:export-ydpi="30.958923">
+   inkscape:export-filename="C:\Users\David.Chong\Desktop\Mycoventure\android\assets\Compost.png"
+   inkscape:export-xdpi="22.5"
+   inkscape:export-ydpi="22.5">
   <defs
      id="defs4">
     <filter
@@ -299,15 +299,15 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="1.4"
-     inkscape:cx="65.883255"
-     inkscape:cy="120"
+     inkscape:zoom="2.9899225"
+     inkscape:cx="14.878588"
+     inkscape:cy="119.28571"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="false"
      units="px"
      inkscape:window-width="1366"
-     inkscape:window-height="705"
+     inkscape:window-height="706"
      inkscape:window-x="-8"
      inkscape:window-y="-8"
      inkscape:window-maximized="1" />
@@ -319,7 +319,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>

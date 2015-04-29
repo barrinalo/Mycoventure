@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="64"
+   height="64"
+   viewBox="0 0 64.000001 64.000001"
+   id="svg2"
+   version="1.1"
+   inkscape:version="0.91 r13725"
+   sodipodi:docname="Supplements.svg"
+   inkscape:export-filename="C:\Users\David.Chong\Desktop\Mycoventure\android\assets\Bulkers.png"
+   inkscape:export-xdpi="90"
+   inkscape:export-ydpi="90">
+  <defs
+     id="defs4" />
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="4.2283889"
+     inkscape:cx="18.357163"
+     inkscape:cy="28.52974"
+     inkscape:document-units="px"
+     inkscape:current-layer="layer1"
+     showgrid="false"
+     units="px"
+     inkscape:window-width="1366"
+     inkscape:window-height="706"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1" />
+  <metadata
+     id="metadata7">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(0,-988.36216)">
+    <path
+       style="fill:#502d16;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="m 10.642351,1032.9694 c 0,0 -5.6759204,1.1825 -4.493437,5.9124 1.1824835,4.73 3.5474505,5.4395 3.5474505,5.4395 l 42.3329085,0.473 c 0,0 7.567894,-1.1825 4.25694,-6.1489 -3.310954,-4.9665 -4.020444,-5.203 -4.020444,-5.203 z"
+       id="path4559"
+       inkscape:connector-curvature="0" />
+    <path
+       style="fill:#502d16;fill-rule:evenodd;stroke:#000000;stroke-width:0.89247465px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="m 14.946488,1021.8005 c 0,0 -4.480283,1.1932 -3.54689,5.966 0.933392,4.7729 2.800176,5.4889 2.800176,5.4889 l 33.415441,0.4772 c 0,0 5.97371,-1.1932 3.360212,-6.2046 -2.613498,-5.0116 -3.173534,-5.2503 -3.173534,-5.2503 z"
+       id="path4559-6"
+       inkscape:connector-curvature="0" />
+    <path
+       style="fill:#502d16;fill-rule:evenodd;stroke:#000000;stroke-width:0.73217207px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="m 20.254433,1009.8957 c 0,0 -2.975478,1.2092 -2.355587,6.046 0.619892,4.8369 1.859674,5.5623 1.859674,5.5623 l 22.192109,0.4837 c 0,0 3.967304,-1.2091 2.231608,-6.2877 -1.735695,-5.0788 -2.10763,-5.3206 -2.10763,-5.3206 z"
+       id="path4559-4"
+       inkscape:connector-curvature="0" />
+    <path
+       style="fill:#502d16;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="m 32.636544,994.89346 c 0,0 -6.148914,0.47299 -7.331398,6.85844 -1.182483,6.3854 -0.945987,8.0409 -0.945987,8.0409 l 13.007319,0.473 c 0,0 4.493437,-1.419 1.891973,-4.9665 -2.601463,-3.5474 -8.040887,-4.2569 -8.040887,-4.2569 0,0 -3.310954,1.1825 1.41898,-6.14894 z"
+       id="path4582"
+       inkscape:connector-curvature="0" />
+  </g>
+</svg>

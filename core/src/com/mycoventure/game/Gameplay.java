@@ -54,6 +54,7 @@ public class Gameplay implements Screen, InputProcessor{
     Sprite ControlsInventory;
     Sprite ControlsCancel;
     Sprite ControlsExaminable;
+    Sprite ControlsPlant;
 
     //Interfaces
     Label ExamineNote;
@@ -65,6 +66,7 @@ public class Gameplay implements Screen, InputProcessor{
     GameState CurrentState;
     Vector<Entity>  ObjectsAndCharacters;
     HashMap<String, MushroomReference> MushroomDatabase;
+    HashMap<String, ResourceReference> ResourceDatabase;
     ShapeRenderer s;
 
     public Gameplay(Mycoventure ref) {
@@ -79,6 +81,7 @@ public class Gameplay implements Screen, InputProcessor{
         CurrentInterface = "None";
         Interfaces = new HashMap<String, InterfaceTemplate>();
         Interfaces.put("Inventory", new InventoryInterface(this));
+        Interfaces.put("Planting", new PlantingInterface(this));
         ExamineNote = new Label("", new Label.LabelStyle(GameReference.ResourceManager.get("SmallFont", BitmapFont.class), Color.RED));
         ExamineNote.setWrap(true);
         ExamineNote.setWidth(CAM_WIDTH * 0.5f);
@@ -93,6 +96,7 @@ public class Gameplay implements Screen, InputProcessor{
         ControlsInventory = new Sprite(GameReference.ResourceManager.get("ControlsInventory.png", Texture.class));
         ControlsCancel = new Sprite(GameReference.ResourceManager.get("ControlsCancel.png", Texture.class));
         ControlsExaminable = new Sprite(GameReference.ResourceManager.get("ControlsExaminable.png", Texture.class));
+        ControlsPlant = new Sprite(GameReference.ResourceManager.get("ControlsPlant.png", Texture.class));
 
         //Create Player
         player = new Player(scale);
@@ -117,6 +121,8 @@ public class Gameplay implements Screen, InputProcessor{
             CurrentState.CurrentTime = 0;
             CurrentState.LastUpdate = 0;
             CurrentState.MushroomSpawnChance = NORMAL;
+            CurrentState.ResourceSpawnChance = NORMAL;
+            CurrentState.CurrentTemperature = 20f;
         }
 
         //Prepare holder for sprites
@@ -124,6 +130,7 @@ public class Gameplay implements Screen, InputProcessor{
 
         //Load Databases
         MushroomDatabase = new HashMap<String, MushroomReference>();
+        ResourceDatabase = new HashMap<String, ResourceReference>();
         String MushText[] = Gdx.files.internal("Mushrooms.csv").readString().split("\n");
         for(int i = 1; i < MushText.length; i++) {
             String tmp[] = MushText[i].split(",");
@@ -137,8 +144,18 @@ public class Gameplay implements Screen, InputProcessor{
             mref.BaseSupplementPreference = Integer.parseInt(tmp[6].trim());
             mref.BaseEfficiency = Integer.parseInt(tmp[7].trim());
             mref.BaseTemperatureTrigger = Integer.parseInt(tmp[8].trim());
-            mref.Rarity = Integer.parseInt(tmp[9].trim());
+            mref.Rarity = Integer.parseInt(tmp[9]);
+            mref.Loggable = tmp[10].trim();
             MushroomDatabase.put(tmp[0], mref);
+        }
+        String ResourceText [] = Gdx.files.internal("Resources.csv").readString().split("\n");
+        for(int i = 1; i < ResourceText.length; i++) {
+            String tmp[] = ResourceText[i].split(",");
+            ResourceReference rref = new ResourceReference();
+            rref.Name = tmp[0];
+            rref.Type = tmp[1];
+            rref.Examine = tmp[2].trim();
+            ResourceDatabase.put(tmp[0], rref);
         }
         //Set map
         MapRenderer = new OrthogonalTiledMapRendererWithSprites(CurrentMap, 1 / scale);
@@ -156,16 +173,28 @@ public class Gameplay implements Screen, InputProcessor{
             UpdateWorld(delta);
 
             //Update Objects and Characters
-            for(Entity e : ObjectsAndCharacters) {
+            Iterator Objit = ObjectsAndCharacters.iterator();
+            while(Objit.hasNext()) {
+                Entity e = (Entity)Objit.next();
                 if(e instanceof MushroomSource) {
                     MushroomSource m = (MushroomSource) e;
                     m.update(delta, CellSize);
                     if(m.Yield == 0 && m.SubstrateRemaining == 0) {
                         CurrentMap.getLayers().get("Sprites").getObjects().remove(m.tmo);
-                        ObjectsAndCharacters.remove(e);
+                        CurrentMap.getLayers().get("Sprites").getObjects().remove(m.Background);
+                        Objit.remove();
+                    }
+                }
+                else if(e instanceof ResourceSource) {
+                    ResourceSource r = (ResourceSource) e;
+                    r.update(delta, CellSize);
+                    if(r.Exhausted()) {
+                        CurrentMap.getLayers().get("Sprites").getObjects().remove(e.tmo);
+                        Objit.remove();
                     }
                 }
             }
+
             //Check collisions with player
             if (player.IsMoving) {
                 if (CheckTerrainCollision("Unwalkable", player, delta)) player.Stop();
@@ -174,7 +203,7 @@ public class Gameplay implements Screen, InputProcessor{
                 else if (CheckExitEntrance(player, delta) != "")
                     ChangeMap(CheckExitEntrance(player, delta), CurrentMap.getProperties().get("Name").toString());
             }
-            player.update(delta, CellSize);
+            player.update(delta, CellSize, CurrentMap);
 
             //Update controls position
             UpdateControls(delta);
@@ -210,6 +239,7 @@ public class Gameplay implements Screen, InputProcessor{
             ControlsUse.draw(GameReference.batch);
             ControlsInventory.draw(GameReference.batch);
             ControlsExaminable.draw(GameReference.batch);
+            ControlsPlant.draw(GameReference.batch);
             ExamineNote.draw(GameReference.batch, 1);
             GameReference.batch.end();
         }
@@ -301,6 +331,33 @@ public class Gameplay implements Screen, InputProcessor{
                         ExamineNote.setText(examinable.Examine());
                         ExamineNote.setPosition(player.getX() - CAM_WIDTH / 4 + player.getWidth() / 2, player.getY() + player.getHeight());
                     }
+                }
+            }
+            else if(ControlsPlant.getBoundingRectangle().contains(WorldCoordinates.x, WorldCoordinates.y)) {
+                Rectangle temp = new Rectangle();
+                temp.x = player.getX();
+                temp.y = player.getY();
+                switch(player.Dir) {
+                    case CharacterEntity.LEFT:
+                        temp.x -= CellSize;
+                        break;
+                    case CharacterEntity.RIGHT:
+                        temp.x += CellSize;
+                        break;
+                    case CharacterEntity.UP:
+                        temp.y += CellSize;
+                        break;
+                    case CharacterEntity.DOWN:
+                        temp.y -= CellSize;
+                        break;
+                }
+                if(CheckStaticObjCollision(temp)) {
+                    PlantingInterface p = (PlantingInterface)Interfaces.get("Planting");
+                    p.Show(temp);
+                }
+                else {
+                    ExamineNote.setText("I can't plant there");
+                    ExamineNote.setPosition(player.getX() - CAM_WIDTH / 4 + player.getWidth() / 2, player.getY() + player.getHeight());
                 }
             }
         }
@@ -408,7 +465,7 @@ public class Gameplay implements Screen, InputProcessor{
         }
 
         //Spawn Stuff
-        SpawnMushrooms();
+        SpawnMushroomsAndResources();
 
         //Add sprites to map
         for(Entity e : ObjectsAndCharacters) CurrentMap.getLayers().get("Sprites").getObjects().add(e.tmo);
@@ -541,9 +598,83 @@ public class Gameplay implements Screen, InputProcessor{
         return WillCollide;
     }
 
-    public void SpawnMushrooms() {
+    public boolean CheckStaticObjCollision(Rectangle temp) {
+        boolean Plantable = true;
+        TiledMapTileLayer t = (TiledMapTileLayer)CurrentMap.getLayers().get("Terrain");
+        if(t.getCell((int)(temp.x / CellSize),(int)(temp.y / CellSize)).getTile().getProperties().containsKey("Unwalkable")) Plantable = false;
+
+        if(Plantable) {
+            for(MapObject obj : CurrentMap.getLayers().get("Objects").getObjects()) {
+                if(obj instanceof RectangleMapObject) {
+                    RectangleMapObject robj = (RectangleMapObject)obj;
+                    if(robj.getRectangle().overlaps(temp)) {
+                        Plantable = false;
+                        break;
+                    }
+                }
+            }
+        }
+
+        if(Plantable) {
+            for(Entity e : ObjectsAndCharacters) {
+                if(e.getBoundingRectangle().overlaps(temp)) {
+                    Plantable = false;
+                    break;
+                }
+            }
+        }
+
+        if(Plantable) {
+            for(MapObject obj : CurrentMap.getLayers().get("Exits And Entrances").getObjects()) {
+                if(obj instanceof RectangleMapObject) {
+                    RectangleMapObject robj = (RectangleMapObject)obj;
+                    if(robj.getRectangle().overlaps(temp)) {
+                        Plantable = false;
+                        break;
+                    }
+                }
+            }
+        }
+        return Plantable;
+    }
+
+    public void SpawnMushroomsAndResources() {
        for(MapObject tmp : CurrentMap.getLayers().get("Spawn Points").getObjects()) {
-           if(tmp.getProperties().get("Type").toString().equals("MushroomSource")) {
+           if(tmp.getProperties().get("Type").toString().equals("ResourceSource")) {
+                if(Math.random() < CurrentState.ResourceSpawnChance) {
+                    RectangleMapObject rect = (RectangleMapObject) tmp;
+                    Rectangle r = rect.getRectangle();
+                    float xpos = r.getX() + r.getWidth() * (float) Math.random();
+                    float ypos = r.getY() + r.getHeight() * (float) Math.random();
+                    boolean intersect = false;
+                    Rectangle temprect = new Rectangle();
+                    temprect.x = xpos;
+                    temprect.y = ypos;
+                    temprect.width = CellSize;
+                    temprect.height = CellSize;
+                    for (Entity e : ObjectsAndCharacters) {
+                        if (e.getBoundingRectangle().overlaps(temprect)) {
+                            intersect = true;
+                            break;
+                        }
+                    }
+                    if(!intersect) {
+                        String resourcename = rect.getProperties().get("Name").toString();
+                        ResourceSource tempr = new ResourceSource(scale, resourcename, ResourceDatabase.get(resourcename).Examine);
+                        tempr.setAnimationSheets(GameReference.ResourceManager.get(resourcename + ".png", Texture.class), CellSize);
+                        if(rect.getProperties().containsKey("Money")) tempr.Money = (int)(Integer.parseInt(rect.getProperties().get("Money").toString()) * Math.random() + 1);
+                        if(rect.getProperties().containsKey("Bulkers")) tempr.Bulkers = (int)(Integer.parseInt(rect.getProperties().get("Bulkers").toString()) * Math.random() + 1);
+                        if(rect.getProperties().containsKey("Supplements")) tempr.Supplements = (int)(Integer.parseInt(rect.getProperties().get("Supplements").toString()) * Math.random() + 1);
+                        if(rect.getProperties().containsKey("Waste")) tempr.Waste = (int)(Integer.parseInt(rect.getProperties().get("Waste").toString()) * Math.random() + 1);
+                        if(rect.getProperties().containsKey("Logs")) tempr.Logs = (int)(Integer.parseInt(rect.getProperties().get("Logs").toString()) * Math.random() + 1);
+                        tempr.setBounds(xpos, ypos, CellSize, CellSize);
+                        tempr.GetStatic(0);
+                        ObjectsAndCharacters.add(tempr);
+                        CurrentMap.getLayers().get("Sprites").getObjects().add(tempr.tmo);
+                    }
+                }
+           }
+           else if(tmp.getProperties().get("Type").toString().equals("MushroomSource")) {
                if (Math.random() < CurrentState.MushroomSpawnChance) {
                    RectangleMapObject rect = (RectangleMapObject) tmp;
                    Rectangle r = rect.getRectangle();
@@ -581,9 +712,11 @@ public class Gameplay implements Screen, InputProcessor{
                        newMushSource.Yield = (int) (Math.random() * spawnlist.get(index).BaseYield + 1);
                        newMushSource.SubstrateRemaining = 0;
                        newMushSource.setBounds(xpos, ypos, CellSize, CellSize);
-                       ObjectsAndCharacters.add(newMushSource);
                        newMushSource.setAnimationSheets(GameReference.ResourceManager.get(newMushSource.Name + ".png", Texture.class), CellSize);
-                       newMushSource.GetStatic(0);
+                       newMushSource.State = MushroomSource.FINAL_FRUITS;
+                       newMushSource.GetStatic(MushroomSource.FINAL_FRUITS);
+                       ObjectsAndCharacters.add(newMushSource);
+
                    }
                }
            }
@@ -601,6 +734,7 @@ public class Gameplay implements Screen, InputProcessor{
         //Optional controls place out of screen if not in use
         ControlsUse.setBounds(GameReference.cam.position.x + CAM_WIDTH, GameReference.cam.position.y + CAM_HEIGHT, 1, 1);
         ControlsExaminable.setBounds(GameReference.cam.position.x + CAM_WIDTH, GameReference.cam.position.y + CAM_HEIGHT, 1, 1);
+        ControlsPlant.setBounds(GameReference.cam.position.x + CAM_WIDTH, GameReference.cam.position.y + CAM_HEIGHT, 1, 1);
 
         //Check player vision
         Vector<String> queue = new Vector<String>();
@@ -611,12 +745,16 @@ public class Gameplay implements Screen, InputProcessor{
                 break;
             }
         }
+        if(CurrentState.CurrentMap.equals("Mycofarm.tmx")) queue.add("Plantable");
         for(int i = 0; i < queue.size(); i++) {
             if(queue.get(i).toString().equals("Collectible")) {
                 ControlsUse.setBounds(GameReference.cam.position.x - CAM_WIDTH / 2f + (0.89f - (float)i * 0.11f) * CAM_WIDTH, GameReference.cam.position.y - CAM_HEIGHT / 2f + 0.05f * CAM_HEIGHT, 0.1f * CAM_WIDTH, 0.1f * CAM_HEIGHT);
             }
             else if(queue.get(i).toString().equals("Examinable")) {
-                ControlsExaminable.setBounds(GameReference.cam.position.x - CAM_WIDTH / 2f + (0.89f - (float)i * 0.1f) * CAM_WIDTH, GameReference.cam.position.y - CAM_HEIGHT / 2f + 0.05f * CAM_HEIGHT, 0.1f * CAM_WIDTH, 0.1f * CAM_HEIGHT);
+                ControlsExaminable.setBounds(GameReference.cam.position.x - CAM_WIDTH / 2f + (0.89f - (float)i * 0.11f) * CAM_WIDTH, GameReference.cam.position.y - CAM_HEIGHT / 2f + 0.05f * CAM_HEIGHT, 0.1f * CAM_WIDTH, 0.1f * CAM_HEIGHT);
+            }
+            else if(queue.get(i).toString().equals("Plantable")) {
+                ControlsPlant.setBounds(GameReference.cam.position.x - CAM_WIDTH / 2f + (0.89f - (float)i * 0.11f) * CAM_WIDTH, GameReference.cam.position.y - CAM_HEIGHT / 2f + 0.05f * CAM_HEIGHT, 0.1f * CAM_WIDTH, 0.1f * CAM_HEIGHT);
             }
         }
     }

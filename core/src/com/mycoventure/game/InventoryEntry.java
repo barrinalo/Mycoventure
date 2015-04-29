@@ -6,6 +6,7 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 
 /**
@@ -14,9 +15,11 @@ import com.badlogic.gdx.scenes.scene2d.ui.Label;
 public class InventoryEntry {
     Sprite Display;
     Label Name, Description, Quantity;
+    int ItemId;
 
-    public InventoryEntry(Texture Display, String Name, String Description, int Quantity, AssetManager res) {
-        this.Display = new Sprite(Display);
+    public InventoryEntry(Texture Display, String Name, String Description, int Quantity, AssetManager res, int CellSize) {
+        ItemId = -1;
+        this.Display = new Sprite(new TextureRegion(Display, 0, 0, CellSize, CellSize));
         this.Name = new Label(Name, new Label.LabelStyle(res.get("SmallFont", BitmapFont.class), Color.WHITE));
         this.Description = new Label(Description, new Label.LabelStyle(res.get("SmallFont", BitmapFont.class), Color.WHITE));
         this.Quantity = new Label(Integer.toString(Quantity), new Label.LabelStyle(res.get("MediumFont", BitmapFont.class), Color.WHITE));
