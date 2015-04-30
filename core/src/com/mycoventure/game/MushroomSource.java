@@ -25,7 +25,8 @@ public class MushroomSource extends AnimatedEntity implements Collectible, Exami
     int Efficiency, Speed, SupplementPreference, HumidityPreference, TemperatureTrigger;
     int ColonisationPercentage, SubstrateRemaining, OriginalSubstrate;
     int State;
-    String Name, ExamineInfo;
+    String Name, ExamineInfo, Location;
+    boolean isLog;
     TextureMapObject Background;
 
     public MushroomSource(float scale, String Name, String ExamineInfo) {
@@ -45,10 +46,19 @@ public class MushroomSource extends AnimatedEntity implements Collectible, Exami
     }
     @Override
     public void Collect(Player p) {
-        if(p.Mushrooms.containsKey(Name)) p.Mushrooms.put(Name, p.Mushrooms.get(Name).intValue() + Yield);
-        else p.Mushrooms.put(Name, Yield);
-        p.Waste += OriginalSubstrate;
-        Yield = 0;
+        if(State == FINAL_FRUITS) {
+            if (p.Mushrooms.containsKey(Name))
+                p.Mushrooms.put(Name, p.Mushrooms.get(Name).intValue() + Yield);
+            else p.Mushrooms.put(Name, Yield);
+            SubstrateRemaining -= (10 - Efficiency);
+            if (SubstrateRemaining < 0) {
+                p.Waste += OriginalSubstrate;
+                SubstrateRemaining = 0;
+            }
+            if(isLog) State = STAGE_0;
+            else State = STAGE_100;
+            Yield = 0;
+        }
     }
 
     @Override
@@ -69,7 +79,7 @@ public class MushroomSource extends AnimatedEntity implements Collectible, Exami
             case STAGE_100:
                 return "I think its ready for fruiting";
             case PINNING:
-                return "There are lumps developing all over the mycelium";
+                return "I can see bumps forming on the surface!";
             case DEAD:
                 return "Lifeless";
             default:
@@ -79,7 +89,22 @@ public class MushroomSource extends AnimatedEntity implements Collectible, Exami
 
     @Override
     public void update(float delta, int CellSize) {
+        if(Yield != 0) State = FINAL_FRUITS;
+
         GetStatic(State);
+        Background.setX(getX());
+        Background.setY(getY());
+        if(ColonisationPercentage == 100 && !isLog) Background.setTextureRegion(AnimationSheets.get(SUBSTRATE_COLONIZED).getKeyFrame(StateTime));
+        else if(OriginalSubstrate == 0) Background.setTextureRegion(AnimationSheets.get(STAGE_0).getKeyFrame(StateTime));
+        else Background.setTextureRegion(AnimationSheets.get(SUBSTRATE).getKeyFrame(StateTime));
+    }
+    public void GetStatic() {
+        GetStatic(State);
+        Background.setX(getX());
+        Background.setY(getY());
+        if(ColonisationPercentage == 100 && !isLog) Background.setTextureRegion(AnimationSheets.get(SUBSTRATE_COLONIZED).getKeyFrame(StateTime));
+        else if(OriginalSubstrate == 0) Background.setTextureRegion(AnimationSheets.get(STAGE_0).getKeyFrame(StateTime));
+        else Background.setTextureRegion(AnimationSheets.get(SUBSTRATE).getKeyFrame(StateTime));
     }
     public void Reposition(float xdist, float ydist) {
         super.Reposition(xdist, ydist);
@@ -101,5 +126,43 @@ public class MushroomSource extends AnimatedEntity implements Collectible, Exami
             AnimationSheets.add(new Animation(AnimationRate, WalkFrames));
         }
 
+    }
+
+    public MushroomSave ExportData() {
+        MushroomSave m = new MushroomSave();
+        m.ColonisationPercentage = ColonisationPercentage;
+        m.Efficiency = Efficiency;
+        m.ExamineInfo = ExamineInfo;
+        m.HumidityPreference = HumidityPreference;
+        m.isLog = isLog;
+        m.Location = Location;
+        m.Name = Name;
+        m.OriginalSubstrate = OriginalSubstrate;
+        m.Speed = Speed;
+        m.State = State;
+        m.SubstrateRemaining = SubstrateRemaining;
+        m.SupplementPreference = SupplementPreference;
+        m.TemperatureTrigger = TemperatureTrigger;
+        m.Yield = Yield;
+        m.xpos = getX();
+        m.ypos = getY();
+        return m;
+    }
+    public void LoadFromSave(MushroomSave m) {
+        ColonisationPercentage = m.ColonisationPercentage;
+        Efficiency = m.Efficiency;
+        ExamineInfo = m.ExamineInfo;
+        HumidityPreference = m.HumidityPreference;
+        isLog = m.isLog;
+        Location = m.Location;
+        Name = m.Name;
+        OriginalSubstrate = m.OriginalSubstrate;
+        Speed = m.Speed;
+        State = m.State;
+        SubstrateRemaining = m.SubstrateRemaining;
+        SupplementPreference = m.SupplementPreference;
+        TemperatureTrigger = m.TemperatureTrigger;
+        Yield = m.Yield;
+        setPosition(m.xpos,m.ypos);
     }
 }

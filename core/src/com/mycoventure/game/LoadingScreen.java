@@ -68,6 +68,7 @@ public class LoadingScreen implements Screen {
         GameReference.ResourceManager.load("Bulkers.png", Texture.class);
 
         //Load Mushrooms
+        GameReference.ResourceManager.load("LogSubstrate.png", Texture.class);
         GameReference.ResourceManager.load("Golden Oyster.png", Texture.class);
         GameReference.ResourceManager.load("Shiitake.png", Texture.class);
 

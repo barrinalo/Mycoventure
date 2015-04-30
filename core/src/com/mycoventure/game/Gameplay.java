@@ -103,31 +103,6 @@ public class Gameplay implements Screen, InputProcessor{
         player.setAnimationSheets(GameReference.ResourceManager.get("Player.png", Texture.class), CellSize);
         player.SetVisionWhenLookingUp(CellSize, CellSize / 4);
 
-        //Begin loading saved data
-        if(Gdx.files.isLocalStorageAvailable()) {
-            if(Gdx.files.local("PlayerSave.myc").exists()) player.LoadFromSaveFile(new Json().fromJson(PlayerSave.class, Gdx.files.local("PlayerSave.myc").readString()));
-            else player.setPosition(15 * CellSize,5 * CellSize);
-            if(Gdx.files.local("GameState.myc").exists()) CurrentState = new Json().fromJson(GameState.class, Gdx.files.local("GameState.myc").readString());
-        }
-
-        if(CurrentState != null) {
-            CurrentMap = GameReference.ResourceManager.get(CurrentState.CurrentMap ,TiledMap.class);
-        }
-        else {
-            CurrentMap = GameReference.ResourceManager.get("Mycofarm.tmx", TiledMap.class); //Default starting location
-            //Set world parameters default
-            CurrentState = new GameState();
-            CurrentState.CurrentMap = "Mycofarm.tmx";
-            CurrentState.CurrentTime = 0;
-            CurrentState.LastUpdate = 0;
-            CurrentState.MushroomSpawnChance = NORMAL;
-            CurrentState.ResourceSpawnChance = NORMAL;
-            CurrentState.CurrentTemperature = 20f;
-        }
-
-        //Prepare holder for sprites
-        ObjectsAndCharacters = new Vector<Entity>();
-
         //Load Databases
         MushroomDatabase = new HashMap<String, MushroomReference>();
         ResourceDatabase = new HashMap<String, ResourceReference>();
@@ -157,12 +132,40 @@ public class Gameplay implements Screen, InputProcessor{
             rref.Examine = tmp[2].trim();
             ResourceDatabase.put(tmp[0], rref);
         }
+
+        //Begin loading saved data
+        if(Gdx.files.isLocalStorageAvailable()) {
+            if(Gdx.files.local("PlayerSave.myc").exists()) player.LoadFromSaveFile(new Json().fromJson(PlayerSave.class, Gdx.files.local("PlayerSave.myc").readString()), this);
+            else player.setPosition(15 * CellSize,5 * CellSize);
+            if(Gdx.files.local("GameState.myc").exists()) CurrentState = new Json().fromJson(GameState.class, Gdx.files.local("GameState.myc").readString());
+        }
+
+        if(CurrentState != null) {
+            CurrentMap = GameReference.ResourceManager.get(CurrentState.CurrentMap ,TiledMap.class);
+        }
+        else {
+            CurrentMap = GameReference.ResourceManager.get("Mycofarm.tmx", TiledMap.class); //Default starting location
+            //Set world parameters default
+            CurrentState = new GameState();
+            CurrentState.CurrentMap = "Mycofarm.tmx";
+            CurrentState.CurrentTime = 0;
+            CurrentState.LastUpdate = 0;
+            CurrentState.MushroomSpawnChance = NORMAL;
+            CurrentState.ResourceSpawnChance = NORMAL;
+            CurrentState.CurrentTemperature = 20f;
+        }
+
+        //Prepare holder for sprites
+        ObjectsAndCharacters = new Vector<Entity>();
+
         //Set map
         MapRenderer = new OrthogonalTiledMapRendererWithSprites(CurrentMap, 1 / scale);
-        //Populate map
-        CurrentMap.getLayers().get("Sprites").getObjects().add(player.tmo);
+
+        //Populate Map
+        ChangeMap(CurrentState.CurrentMap.substring(0, CurrentState.CurrentMap.length()-4), "");
+
         //Set Camera
-        GameReference.cam.setToOrtho(false,CAM_HEIGHT,CAM_WIDTH);
+        GameReference.cam.setToOrtho(false, CAM_HEIGHT, CAM_WIDTH);
         GameReference.cam.update();
     }
 
@@ -242,6 +245,14 @@ public class Gameplay implements Screen, InputProcessor{
             ControlsPlant.draw(GameReference.batch);
             ExamineNote.draw(GameReference.batch, 1);
             GameReference.batch.end();
+
+            s.setProjectionMatrix(GameReference.cam.combined);
+            s.begin(ShapeRenderer.ShapeType.Line);
+            s.rect(player.getX(),player.getY(),player.getWidth(),player.getHeight());
+            for(MushroomSource m : player.MyGrowingMushrooms) {
+                if(m.Location.equals(CurrentState.CurrentMap)) s.rect(m.getX(),m.getY(),m.getWidth(),m.getHeight());
+            }
+            s.end();
         }
         else {
             Interfaces.get(CurrentInterface).Update(delta);
@@ -323,6 +334,11 @@ public class Gameplay implements Screen, InputProcessor{
                         collectible.Collect(player);
                     }
                 }
+                for(MushroomSource m : player.MyGrowingMushrooms) {
+                    if(m.Location.equals(CurrentState.CurrentMap) && m.getBoundingRectangle().overlaps(player.Vision)) {
+                        m.Collect(player);
+                    }
+                }
             }
             else if(ControlsExaminable.getBoundingRectangle().contains(WorldCoordinates.x, WorldCoordinates.y)) {
                 for(Entity e : ObjectsAndCharacters) {
@@ -332,11 +348,19 @@ public class Gameplay implements Screen, InputProcessor{
                         ExamineNote.setPosition(player.getX() - CAM_WIDTH / 4 + player.getWidth() / 2, player.getY() + player.getHeight());
                     }
                 }
+                for(MushroomSource m : player.MyGrowingMushrooms) {
+                    if(m.Location.equals(CurrentState.CurrentMap) && m.getBoundingRectangle().overlaps(player.Vision)) {
+                        ExamineNote.setText(m.Examine());
+                        ExamineNote.setPosition(player.getX() - CAM_WIDTH / 4 + player.getWidth() / 2, player.getY() + player.getHeight());
+                    }
+                }
             }
             else if(ControlsPlant.getBoundingRectangle().contains(WorldCoordinates.x, WorldCoordinates.y)) {
                 Rectangle temp = new Rectangle();
                 temp.x = player.getX();
                 temp.y = player.getY();
+                temp.width = CellSize;
+                temp.height = CellSize;
                 switch(player.Dir) {
                     case CharacterEntity.LEFT:
                         temp.x -= CellSize;
@@ -427,48 +451,55 @@ public class Gameplay implements Screen, InputProcessor{
 
     public void ChangeMap(String MapName, String LastMap) {
         //Clear Objects and Sprites and Map
-        for(Entity e : ObjectsAndCharacters) CurrentMap.getLayers().get("Sprites").getObjects().remove(e.tmo);
-        ObjectsAndCharacters.clear();
-        CurrentMap.dispose();
-
+        if(!LastMap.equals("")) {
+            for (Entity e : ObjectsAndCharacters)
+                CurrentMap.getLayers().get("Sprites").getObjects().remove(e.tmo);
+            ObjectsAndCharacters.clear();
+            CurrentMap.dispose();
+        }
         //Change to new map
         CurrentMap = GameReference.ResourceManager.get(MapName + ".tmx", TiledMap.class);
         CurrentState.CurrentMap = MapName + ".tmx";
 
-        //Reposition Player
-        CurrentMap.getLayers().get("Sprites").getObjects().add(player.tmo);
-        for(MapObject tmp : CurrentMap.getLayers().get("Exits And Entrances").getObjects()) {
-            if(tmp.getProperties().get("From").toString().equals(LastMap)) {
-                RectangleMapObject rect = (RectangleMapObject)tmp;
-                Rectangle r = new Rectangle(rect.getRectangle());
-                String dir = rect.getProperties().get("Facing").toString();
-                float xpos = (float)Math.floor(r.x / CellSize) * CellSize;
-                float ypos = (float)Math.floor(r.y / CellSize) * CellSize;
-                if(dir.equals("Left")) {
-                    xpos -= 1 * CellSize;
-                    player.Dir = Player.LEFT;
+        if(!LastMap.equals("")) {
+            //Reposition Player
+            CurrentMap.getLayers().get("Sprites").getObjects().add(player.tmo);
+            for (MapObject tmp : CurrentMap.getLayers().get("Exits And Entrances").getObjects()) {
+                if (tmp.getProperties().get("From").toString().equals(LastMap)) {
+                    RectangleMapObject rect = (RectangleMapObject) tmp;
+                    Rectangle r = new Rectangle(rect.getRectangle());
+                    String dir = rect.getProperties().get("Facing").toString();
+                    float xpos = (float) Math.floor(r.x / CellSize) * CellSize;
+                    float ypos = (float) Math.floor(r.y / CellSize) * CellSize;
+                    if (dir.equals("Left")) {
+                        xpos -= 1 * CellSize;
+                        player.Dir = Player.LEFT;
+                    } else if (dir.equals("Right")) {
+                        xpos += 1 * CellSize;
+                        player.Dir = Player.RIGHT;
+                    } else if (dir.equals("Down")) {
+                        ypos -= 1 * CellSize;
+                        player.Dir = Player.DOWN;
+                    } else if (dir.equals("Up")) {
+                        ypos += 1 * CellSize;
+                        player.Dir = Player.UP;
+                    }
+                    player.setPosition(xpos, ypos);
                 }
-                else if(dir.equals("Right")) {
-                    xpos += 1 * CellSize;
-                    player.Dir = Player.RIGHT;
-                }
-                else if(dir.equals("Down")) {
-                    ypos -= 1 * CellSize;
-                    player.Dir = Player.DOWN;
-                }
-                else if(dir.equals("Up")) {
-                    ypos += 1 * CellSize;
-                    player.Dir = Player.UP;
-                }
-                player.setPosition(xpos, ypos);
             }
         }
-
+        else CurrentMap.getLayers().get("Sprites").getObjects().add(player.tmo);
         //Spawn Stuff
-        SpawnMushroomsAndResources();
+        //SpawnMushroomsAndResources();
 
         //Add sprites to map
         for(Entity e : ObjectsAndCharacters) CurrentMap.getLayers().get("Sprites").getObjects().add(e.tmo);
+        for(MushroomSource m : player.MyGrowingMushrooms) {
+            if (m.Location.equals(CurrentState.CurrentMap)) {
+                CurrentMap.getLayers().get("Sprites").getObjects().add(m.Background);
+                CurrentMap.getLayers().get("Sprites").getObjects().add(m.tmo);
+            }
+        }
         //Set Map
         MapRenderer.setMap(CurrentMap);
         MapRenderer.setView(GameReference.cam);
@@ -559,6 +590,14 @@ public class Gameplay implements Screen, InputProcessor{
                 }
             }
         }
+        for (MushroomSource m : player.MyGrowingMushrooms) {
+            if(CurrentState.CurrentMap.equals(m.Location)) {
+                if(m.getBoundingRectangle().overlaps(EntityRect)) {
+                    WillCollide = true;
+                    break;
+                }
+            }
+        }
         return WillCollide;
     }
     public boolean CheckTerrainCollision(String TileProperty, CharacterEntity entity, float delta) {
@@ -632,6 +671,15 @@ public class Gameplay implements Screen, InputProcessor{
                         Plantable = false;
                         break;
                     }
+                }
+            }
+        }
+
+        if(Plantable) {
+            for(MushroomSource m : player.MyGrowingMushrooms) {
+                if(m.getBoundingRectangle().overlaps(temp)) {
+                    Plantable = false;
+                    break;
                 }
             }
         }
@@ -714,9 +762,10 @@ public class Gameplay implements Screen, InputProcessor{
                        newMushSource.setBounds(xpos, ypos, CellSize, CellSize);
                        newMushSource.setAnimationSheets(GameReference.ResourceManager.get(newMushSource.Name + ".png", Texture.class), CellSize);
                        newMushSource.State = MushroomSource.FINAL_FRUITS;
-                       newMushSource.GetStatic(MushroomSource.FINAL_FRUITS);
+                       newMushSource.GetStatic();
                        ObjectsAndCharacters.add(newMushSource);
-
+                       CurrentMap.getLayers().get("Sprites").getObjects().add(newMushSource.Background);
+                       CurrentMap.getLayers().get("Sprites").getObjects().add(newMushSource.tmo);
                    }
                }
            }
@@ -745,6 +794,13 @@ public class Gameplay implements Screen, InputProcessor{
                 break;
             }
         }
+        for(MushroomSource m : player.MyGrowingMushrooms) {
+            if(m.Location.equals(CurrentState.CurrentMap) && m.getBoundingRectangle().overlaps(player.Vision)) {
+                if (m.State == MushroomSource.FINAL_FRUITS) queue.add("Collectible");
+               queue.add("Examinable");
+                break;
+            }
+        }
         if(CurrentState.CurrentMap.equals("Mycofarm.tmx")) queue.add("Plantable");
         for(int i = 0; i < queue.size(); i++) {
             if(queue.get(i).toString().equals("Collectible")) {
@@ -767,11 +823,38 @@ public class Gameplay implements Screen, InputProcessor{
                 CurrentState.MushroomSpawnChance = (float)Math.random() * 0.1f + 0.9f;
             }
             else CurrentState.MushroomSpawnChance = (float)Math.random() * 0.89f;
+
+            //Update world
+            SpawnMushroomsAndResources();
+
         }
 
         if(CurrentState.CurrentTime > ONE_DAY) {
             CurrentState.CurrentTime = 0;
             CurrentState.LastUpdate = 0;
+            for(MushroomSource m : player.MyGrowingMushrooms) {
+                if(!m.isLog && m.State >= MushroomSource.STAGE_0 && m.State < MushroomSource.STAGE_100) {
+                    m.ColonisationPercentage += 25 + m.Efficiency;
+                    if(m.ColonisationPercentage > 100) m.ColonisationPercentage = 100;
+                    m.State++;
+                    m.SubstrateRemaining -= (10 - m.Efficiency);
+                }
+                else if(!m.isLog && m.State == MushroomSource.STAGE_100) {
+                    //do check here for temperature conditions
+                    m.State = MushroomSource.PINNING;
+                }
+                else if(m.isLog && m.ColonisationPercentage < 100) {
+                    m.ColonisationPercentage += 25 + m.Efficiency;
+                    if(m.ColonisationPercentage > 100) m.ColonisationPercentage = 100;
+                    m.SubstrateRemaining -= (10 - m.Efficiency);
+                }
+                else if(m.isLog && m.ColonisationPercentage == 100 && m.State == MushroomSource.STAGE_0) {
+                    //do check here for temperature conditions
+                    m.State = MushroomSource.PINNING;
+                }
+                else if(m.State == MushroomSource.PINNING) m.Yield = (int)(Math.round(Math.random() * m.Yield + 1));
+
+            }
         }
     }
 }

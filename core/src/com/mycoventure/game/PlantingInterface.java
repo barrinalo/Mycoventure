@@ -49,7 +49,7 @@ public class PlantingInterface implements InterfaceTemplate {
             Ref.s.setProjectionMatrix(Ref.GameReference.cam.combined);
             Ref.s.begin(ShapeRenderer.ShapeType.Filled);
             Ref.s.setColor(Color.YELLOW);
-            Ref.s.rect(0, -Selection * Ref.CellSize, Ref.CAM_WIDTH, Ref.CellSize);
+            Ref.s.rect(0, Selection * Ref.CellSize, Ref.CAM_WIDTH, Ref.CellSize);
             Ref.s.end();
 
         }
@@ -129,22 +129,22 @@ public class PlantingInterface implements InterfaceTemplate {
 
     @Override
     public void touchUp(int screenX, int screenY, int pointer) {
-
+        Vector3 WorldCoordinates = Ref.GameReference.cam.unproject(new Vector3(screenX,screenY,0));
+        Selection = (int)(Math.floor(WorldCoordinates.y / Ref.CellSize));
+        if(State == CHOOSE_SUBSTRATE) {
+            int tmpSelection = -Selection - 2;
+            if(tmpSelection >= Substrate.size() || tmpSelection == -1) Selection = 0;
+        }
+        else if(State == CHOOSE_INOCCULANT) {
+            int tmpSelection = -Selection - 2;
+            if(tmpSelection >= Inocculants.size() || tmpSelection == -1) Selection = 0;
+        }
     }
 
     @Override
     public void touchDown(int screenX, int screenY, int pointer) {
         tempy = screenY;
         Vector3 WorldCoordinates = Ref.GameReference.cam.unproject(new Vector3(screenX,screenY,0));
-        Selection = -(int)(WorldCoordinates.y / Ref.CellSize);
-        if(State == CHOOSE_SUBSTRATE) {
-            int tmpSelection = -Selection - 2;
-            if(tmpSelection > Substrate.size()) Selection = 0;
-        }
-        else if(State == CHOOSE_INOCCULANT) {
-            int tmpSelection = -Selection - 2;
-            if(tmpSelection > Inocculants.size()) Selection = 0;
-        }
         if(CancelButton.getBoundingRectangle().contains(WorldCoordinates.x,WorldCoordinates.y)) {
             Ref.CurrentInterface = "None";
             Hide();
@@ -158,8 +158,9 @@ public class PlantingInterface implements InterfaceTemplate {
             else if(State == CHOOSE_SUBSTRATE && Selection != 0) {
                 ChosenSubstrate = -Selection - 2;
                 if(Inocculants.get(ChosenInocculant).ItemId != -1) Ref.player.SpawnAndCultures.get(Inocculants.get(ChosenInocculant).ItemId).Quantity -= 1;
-                else Ref.player.Mushrooms.put(Inocculants.get(ChosenInocculant).Name.getText().toString(), Ref.player.Mushrooms.get(Inocculants.get(ChosenInocculant).Name).intValue() - 1);
+                else Ref.player.Mushrooms.put(Inocculants.get(ChosenInocculant).Name.getText().toString(), Ref.player.Mushrooms.get(Inocculants.get(ChosenInocculant).Name.getText().toString()).intValue() - 1);
                 if(Substrate.get(ChosenSubstrate).ItemId != -1) Ref.player.TypesOfCompost.get(Substrate.get(ChosenSubstrate).ItemId).Quantity -= 1;
+                else Ref.player.Logs -= 1;
                 String Mushname = Inocculants.get(ChosenInocculant).Name.getText().toString();
                 MushroomSource m = new MushroomSource(Ref.scale, Mushname, Ref.MushroomDatabase.get(Mushname).Examine);
                 if(Inocculants.get(ChosenInocculant).ItemId == -1) {
@@ -167,7 +168,8 @@ public class PlantingInterface implements InterfaceTemplate {
                     m.ColonisationPercentage = 0;
                     m.OriginalSubstrate = 100;
                     m.SubstrateRemaining = 100;
-
+                    if(Substrate.get(ChosenSubstrate).ItemId == -1) m.isLog = true;
+                    else m.isLog = false;
                     if(Math.random() > 0.5f) m.HumidityPreference = (int)(Ref.MushroomDatabase.get(Mushname).BaseHumidityPreference - Math.random() * 10);
                     else m.HumidityPreference = (int)(Ref.MushroomDatabase.get(Mushname).BaseHumidityPreference + Math.random() * 10);
                     if(Math.random() > 0.5f) m.Efficiency = (int)(Ref.MushroomDatabase.get(Mushname).BaseEfficiency - Math.random() * 10);
@@ -182,14 +184,31 @@ public class PlantingInterface implements InterfaceTemplate {
                     if(Substrate.get(ChosenSubstrate).ItemId == -1) m.setAnimationSheets(Ref.GameReference.ResourceManager.get(Mushname + ".png", Texture.class), Ref.GameReference.ResourceManager.get("LogSubstrate.png", Texture.class), Ref.CellSize);
                     else m.setAnimationSheets(Ref.GameReference.ResourceManager.get("CompostSubstrate.png", Texture.class), Ref.GameReference.ResourceManager.get("LogSubstrate.png", Texture.class), Ref.CellSize);
                     m.setBounds(Pos.x, Pos.y, Pos.width, Pos.height);
+                    m.Location = Ref.CurrentState.CurrentMap;
                     Ref.player.MyGrowingMushrooms.add(m);
-                    Ref.CurrentMap.getLayers().get("Sprites").getObjects().add(m.tmo);
                     Ref.CurrentMap.getLayers().get("Sprites").getObjects().add(m.Background);
+                    Ref.CurrentMap.getLayers().get("Sprites").getObjects().add(m.tmo);
 
                     Ref.CurrentInterface = "None";
                     Hide();
                 }
                 else {
+                    m.State = MushroomSource.STAGE_0;
+                    m.ColonisationPercentage = 0;
+                    m.OriginalSubstrate = 100;
+                    m.SubstrateRemaining = 100;
+                    if(Substrate.get(ChosenSubstrate).ItemId == -1) m.isLog = true;
+                    else m.isLog = false;
+
+
+
+                    if(Substrate.get(ChosenSubstrate).ItemId == -1) m.setAnimationSheets(Ref.GameReference.ResourceManager.get(Mushname + ".png", Texture.class), Ref.GameReference.ResourceManager.get("LogSubstrate.png", Texture.class), Ref.CellSize);
+                    else m.setAnimationSheets(Ref.GameReference.ResourceManager.get("CompostSubstrate.png", Texture.class), Ref.GameReference.ResourceManager.get("LogSubstrate.png", Texture.class), Ref.CellSize);
+                    m.setBounds(Pos.x, Pos.y, Pos.width, Pos.height);
+                    m.Location = Ref.CurrentState.CurrentMap;
+                    Ref.player.MyGrowingMushrooms.add(m);
+                    Ref.CurrentMap.getLayers().get("Sprites").getObjects().add(m.Background);
+                    Ref.CurrentMap.getLayers().get("Sprites").getObjects().add(m.tmo);
                     Ref.CurrentInterface = "None";
                     Hide();
                 }
@@ -200,6 +219,7 @@ public class PlantingInterface implements InterfaceTemplate {
             State = CHOOSE_INOCCULANT;
             ChosenSubstrate = -1;
             ChosenInocculant = -1;
+            Selection = 0;
             Ref.GameReference.cam.setToOrtho(false, Ref.CAM_WIDTH, Ref.CAM_HEIGHT);
             Ref.GameReference.cam.position.x = Ref.CAM_WIDTH / 2;
             Ref.GameReference.cam.position.y = -Ref.CAM_HEIGHT / 2;

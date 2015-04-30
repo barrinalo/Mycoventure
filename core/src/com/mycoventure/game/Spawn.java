@@ -7,8 +7,10 @@ public class Spawn {
     String Name, Description;
     int Quantity;
     boolean Culture;
-
+    int Yield;
+    int Efficiency, Speed, SupplementPreference, HumidityPreference, TemperatureTrigger;
     public Spawn(){};
+
     public Spawn(String Name, int Quantity, boolean Culture, String Description) {
         this.Name = Name;
         this.Quantity = Quantity;

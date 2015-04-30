@@ -12,5 +12,6 @@ public class PlayerSave {
     HashMap<String, Integer> Mushrooms;
     Vector<Spawn> SpawnAndCultures;
     Vector<Compost> TypesOfCompost;
+    Vector<MushroomSave> MyGrowingMushrooms;
 
 }

@@ -22,7 +22,7 @@ public class InventoryEntry {
         this.Display = new Sprite(new TextureRegion(Display, 0, 0, CellSize, CellSize));
         this.Name = new Label(Name, new Label.LabelStyle(res.get("SmallFont", BitmapFont.class), Color.WHITE));
         this.Description = new Label(Description, new Label.LabelStyle(res.get("SmallFont", BitmapFont.class), Color.WHITE));
-        this.Quantity = new Label(Integer.toString(Quantity), new Label.LabelStyle(res.get("MediumFont", BitmapFont.class), Color.WHITE));
+        this.Quantity = new Label(Integer.toString(Quantity), new Label.LabelStyle(res.get("SmallFont", BitmapFont.class), Color.WHITE));
 
         this.Name.setWrap(true);
         this.Description.setWrap(true);

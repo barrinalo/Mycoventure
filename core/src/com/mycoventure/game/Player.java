@@ -11,6 +11,7 @@ import com.badlogic.gdx.maps.tiled.TiledMap;
 
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Vector;
 
 /**
@@ -39,7 +40,7 @@ public class Player extends CharacterEntity {
         Mushrooms = new HashMap<String, Integer>();
     }
 
-    public void LoadFromSaveFile(PlayerSave temp){
+    public void LoadFromSaveFile(PlayerSave temp, Gameplay Ref){
         setPosition(temp.Position_X, temp.Position_Y);
         Dir = temp.Direction;
 
@@ -51,6 +52,14 @@ public class Player extends CharacterEntity {
         SpawnAndCultures = temp.SpawnAndCultures;
         Mushrooms = temp.Mushrooms;
         TypesOfCompost = temp.TypesOfCompost;
+        Vector<MushroomSave> SaveMushrooms = temp.MyGrowingMushrooms;
+        for(MushroomSave m : SaveMushrooms) {
+            MushroomSource newMush = new MushroomSource(scale,"","");
+            newMush.LoadFromSave(m);
+            if(Ref.MushroomDatabase.get(newMush.Name).Loggable.equals("Yes")) newMush.setAnimationSheets(Ref.GameReference.ResourceManager.get(newMush.Name + ".png", Texture.class), Ref.GameReference.ResourceManager.get("LogSubstrate.png", Texture.class), Ref.CellSize);
+            else; //Load compost substrate background
+            MyGrowingMushrooms.add(newMush);
+        }
     }
     public PlayerSave ExportData() {
         PlayerSave temp = new PlayerSave();
@@ -65,7 +74,9 @@ public class Player extends CharacterEntity {
         temp.Mushrooms = Mushrooms;
         temp.SpawnAndCultures = SpawnAndCultures;
         temp.TypesOfCompost = TypesOfCompost;
-
+        Vector<MushroomSave> SaveMushrooms = new Vector<MushroomSave>();
+        for(MushroomSource m : MyGrowingMushrooms) SaveMushrooms.add(m.ExportData());
+        temp.MyGrowingMushrooms = SaveMushrooms;
         return temp;
     }
     public void update(float delta, int CellSize, TiledMap CurrentMap) {
@@ -75,6 +86,22 @@ public class Player extends CharacterEntity {
             if(c.Quantity == 0) it.remove();
         }
         it = MyGrowingMushrooms.iterator();
+        while(it.hasNext()) {
+            MushroomSource m = (MushroomSource)it.next();
+            if(m.Location.equals(CurrentMap.getProperties().get("Name").toString() + ".tmx")) {
+                m.update(delta, CellSize);
+                if (m.Yield == 0 && m.SubstrateRemaining == 0) {
+                    CurrentMap.getLayers().get("Sprites").getObjects().remove(m.tmo);
+                    CurrentMap.getLayers().get("Sprites").getObjects().remove(m.Background);
+                    it.remove();
+                }
+            }
+        }
+        it = Mushrooms.entrySet().iterator();
+        while(it.hasNext()) {
+            Map.Entry pair = (Map.Entry)it.next();
+            if(Integer.parseInt(pair.getValue().toString()) == 0) it.remove();
+        }
         while(it.hasNext()) {
             MushroomSource m = (MushroomSource)it.next();
             if(m.Yield == 0 && m.SubstrateRemaining == 0) {
