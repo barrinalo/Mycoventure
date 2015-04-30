@@ -8,7 +8,7 @@ import com.badlogic.gdx.maps.objects.TextureMapObject;
 /**
  * Created by David on 27/04/2015.
  */
-public class MushroomSource extends AnimatedEntity implements Collectible, Examinable {
+public class MushroomSource extends AnimatedEntity implements Collectible, Examinable, Sample {
     public static final int ICON = 0;
     public static final int FINAL_FRUITS = 1;
     public static final int STAGE_0 = 2;
@@ -22,7 +22,7 @@ public class MushroomSource extends AnimatedEntity implements Collectible, Exami
     public static final int SUBSTRATE_COLONIZED = 10;
 
     int Yield;
-    int Efficiency, Speed, SupplementPreference, HumidityPreference, TemperatureTrigger;
+    int Efficiency, Speed, SupplementPreference, HumidityPreference, TemperatureTrigger, BaseYield;
     int ColonisationPercentage, SubstrateRemaining, OriginalSubstrate;
     int State;
     String Name, ExamineInfo, Location;
@@ -146,6 +146,7 @@ public class MushroomSource extends AnimatedEntity implements Collectible, Exami
         m.Yield = Yield;
         m.xpos = getX();
         m.ypos = getY();
+        m.BaseYield = BaseYield;
         return m;
     }
     public void LoadFromSave(MushroomSave m) {
@@ -162,7 +163,27 @@ public class MushroomSource extends AnimatedEntity implements Collectible, Exami
         SubstrateRemaining = m.SubstrateRemaining;
         SupplementPreference = m.SupplementPreference;
         TemperatureTrigger = m.TemperatureTrigger;
+        BaseYield = m.BaseYield;
         Yield = m.Yield;
         setPosition(m.xpos,m.ypos);
+    }
+
+    @Override
+    public void Sample(Player p, Gameplay Ref) {
+        if(OriginalSubstrate != 0) {
+            Spawn tmp = new Spawn();
+            tmp.Name = Name;
+            tmp.Description = ExamineInfo;
+            tmp.Efficiency = Efficiency;
+            tmp.Culture = true;
+            tmp.HumidityPreference = HumidityPreference;
+            tmp.Speed = Speed;
+            tmp.TemperatureTrigger = TemperatureTrigger;
+            tmp.Yield = BaseYield;
+            tmp.SupplementPreference = SupplementPreference;
+        }
+        else {
+
+        }
     }
 }

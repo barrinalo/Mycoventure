@@ -6,7 +6,7 @@ package com.mycoventure.game;
 public class MushroomSave {
     float xpos, ypos;
     int Yield;
-    int Efficiency, Speed, SupplementPreference, HumidityPreference, TemperatureTrigger;
+    int Efficiency, Speed, SupplementPreference, HumidityPreference, TemperatureTrigger, BaseYield;
     int ColonisationPercentage, SubstrateRemaining, OriginalSubstrate;
     int State;
     String Name, ExamineInfo, Location;

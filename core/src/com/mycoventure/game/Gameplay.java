@@ -852,7 +852,7 @@ public class Gameplay implements Screen, InputProcessor{
                     //do check here for temperature conditions
                     m.State = MushroomSource.PINNING;
                 }
-                else if(m.State == MushroomSource.PINNING) m.Yield = (int)(Math.round(Math.random() * m.Yield + 1));
+                else if(m.State == MushroomSource.PINNING) m.Yield = (int)(Math.round(Math.random() * m.BaseYield + 1));
 
             }
         }

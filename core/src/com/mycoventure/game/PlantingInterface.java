@@ -180,6 +180,8 @@ public class PlantingInterface implements InterfaceTemplate {
                     else m.Speed = (int)(Ref.MushroomDatabase.get(Mushname).BaseSpeed + Math.random() * 10);
                     if(Math.random() > 0.5f) m.TemperatureTrigger = (int)(Ref.MushroomDatabase.get(Mushname).BaseTemperatureTrigger - Math.random() * 10);
                     else m.TemperatureTrigger = (int)(Ref.MushroomDatabase.get(Mushname).BaseTemperatureTrigger + Math.random() * 10);
+                    if(Math.random() > 0.5f) m.BaseYield = (int)(Ref.MushroomDatabase.get(Mushname).BaseYield - Math.random() * 10);
+                    else m.BaseYield = (int)(Ref.MushroomDatabase.get(Mushname).BaseYield + Math.random() * 10);
 
                     if(Substrate.get(ChosenSubstrate).ItemId == -1) m.setAnimationSheets(Ref.GameReference.ResourceManager.get(Mushname + ".png", Texture.class), Ref.GameReference.ResourceManager.get("LogSubstrate.png", Texture.class), Ref.CellSize);
                     else m.setAnimationSheets(Ref.GameReference.ResourceManager.get("CompostSubstrate.png", Texture.class), Ref.GameReference.ResourceManager.get("LogSubstrate.png", Texture.class), Ref.CellSize);
